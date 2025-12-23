@@ -1,5 +1,11 @@
 import React from "react";
-import { ExpCouponPage, App, Event2408Page, MapleCalendarPage } from "@/pages";
+import {
+    ExpCouponPage,
+    App,
+    Event2408Page,
+    MapleCalendarPage,
+    HomePage,
+} from "@/pages";
 import { Event2412Page } from "./pages/Event2412Page";
 import { SymbolPage } from "./pages/SymbolPage";
 import { DefaultLayout } from "./layout";
@@ -18,6 +24,10 @@ export const routes = [
         path: "/",
         element: <DefaultLayout />,
         children: [
+            {
+                index: true,
+                element: <HomePage />,
+            },
             {
                 path: "app",
                 element: <App />,
