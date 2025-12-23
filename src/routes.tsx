@@ -1,7 +1,6 @@
 import React from "react";
 import {
     ExpCouponPage,
-    App,
     Event2408Page,
     MapleCalendarPage,
     HomePage,
@@ -12,16 +11,16 @@ import { DefaultLayout } from "./layout";
 import { MotionPage } from "./pages/MotionPage";
 import { CalendarPage } from "./pages/Calendar";
 export const routes = [
+    // {
+    //     path: "*",
+    //     element: (
+    //         <>
+    //             <h1>NotFound</h1>
+    //         </>
+    //     ),
+    // },
     {
         path: "*",
-        element: (
-            <>
-                <h1>NotFound</h1>
-            </>
-        ),
-    },
-    {
-        path: "/",
         element: <DefaultLayout />,
         children: [
             {
@@ -59,16 +58,3 @@ export const routes = [
         ],
     },
 ];
-
-// {
-//     path: "*"
-//     element: <Navigate to={"/main"} replace={true} />,
-// },
-// {
-//     path: "/main",
-//     element: <Main />,
-// },
-// {
-//     path: "/weekend-study",
-//     element: <WeekendStudy />,
-// },
