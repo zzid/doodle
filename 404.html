@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>React App</title>
+    <script>
+      // GitHub Pages SPA redirect
+      // Redirect to index.html with the current path preserved
+      var path = window.location.pathname;
+      var search = window.location.search;
+      var hash = window.location.hash;
+      
+      // Remove /doodle prefix if already present
+      if (path.startsWith('/doodle')) {
+        path = path.substring('/doodle'.length);
+      }
+      
+      // Redirect to index.html
+      var redirect = '/doodle/index.html' + path + search + hash;
+      window.location.replace(redirect);
+    </script>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div>Redirecting...</div>
+  </body>
+</html>
