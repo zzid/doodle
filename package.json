@@ -2,9 +2,11 @@
     "name": "doodle",
     "version": "0.1.0",
     "private": true,
+    "homepage": "https://zzid.github.io/doodle",
     "dependencies": {
         "@craco/craco": "^7.1.0",
         "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.1",
         "@testing-library/jest-dom": "^5.14.1",
         "@testing-library/react": "^13.0.0",
         "@testing-library/user-event": "^13.2.1",
@@ -21,6 +23,7 @@
         "immer": "^10.1.1",
         "lodash-es": "^4.17.21",
         "lucide-react": "^0.544.0",
+        "motion": "^12.23.22",
         "react": "^18.3.1",
         "react-app-alias": "^2.2.2",
         "react-big-calendar": "^1.17.0",
@@ -39,7 +42,9 @@
         "start": "export PORT=3030 && craco start",
         "build": "craco build",
         "test": "craco test",
-        "eject": "craco eject"
+        "eject": "craco eject",
+        "predeploy": "yarn build",
+        "deploy": "gh-pages -d build"
     },
     "eslintConfig": {
         "extends": [
@@ -66,6 +71,7 @@
         "@types/lodash-es": "^4.17.12",
         "@types/react-router": "^5.1.20",
         "@types/react-router-dom": "^5.3.3",
-        "babel-plugin-styled-components": "^2.1.4"
+        "babel-plugin-styled-components": "^2.1.4",
+        "gh-pages": "^6.3.0"
     }
 }

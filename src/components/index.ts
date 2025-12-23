@@ -1,1 +1,2 @@
-export { App } from "../pages/App";
+export { Button } from "./Button";
+export { Tag } from "./Tag";

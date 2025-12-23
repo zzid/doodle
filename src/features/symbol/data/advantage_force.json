@@ -1,111 +1,103 @@
 [
     {
-        "name": "선택받은 세렌 1페이즈 (노멀/하드/익스트림)",
+        "name": "선택받은 세렌 1페이즈",
+        "difficulty": "All",
         "min": 150,
         "max": 200
     },
     {
-        "name": "선택받은 세렌 2페이즈 (노멀/하드/익스트림)",
+        "name": "선택받은 세렌 2페이즈",
+        "difficulty": "All",
         "min": 200,
         "max": 250
     },
     {
-        "name": "감시자 칼로스 (스토리)",
-        "min": 70,
-        "max": 120
-    },
-    {
-        "name": "감시자 칼로스 (이지)",
+        "name": "감시자 칼로스",
+        "difficulty": "Easy",
         "min": 200,
         "max": 250
     },
     {
-        "name": "감시자 칼로스 1페이즈 (노멀)",
+        "name": "감시자 칼로스 1페이즈",
+        "difficulty": "Normal",
         "min": 250,
         "max": 300
     },
     {
-        "name": "감시자 칼로스 2페이즈 (노멀)",
+        "name": "감시자 칼로스 2페이즈",
+        "difficulty": "Normal",
         "min": 300,
         "max": 350
     },
     {
-        "name": "감시자 칼로스 (카오스)",
+        "name": "감시자 칼로스",
+        "difficulty": "Chaos",
         "min": 330,
         "max": 380
     },
     {
-        "name": "감시자 칼로스 (익스트림)",
+        "name": "감시자 칼로스",
+        "difficulty": "Extreme",
         "min": 440,
         "max": 490
     },
     {
-        "name": "보스 몬스터: 최초의 대적자 (스토리)",
-        "min": 200,
-        "max": 250
-    },
-    {
-        "name": "보스 몬스터: 최초의 대적자 (이지)",
+        "name": "최초의 대적자",
+        "difficulty": "Easy",
         "min": 220,
         "max": 270
     },
     {
-        "name": "보스 몬스터: 최초의 대적자 (노멀)",
+        "name": "최초의 대적자",
+        "difficulty": "Normal",
         "min": 320,
         "max": 370
     },
     {
-        "name": "보스 몬스터: 최초의 대적자 (하드)",
+        "name": "최초의 대적자",
+        "difficulty": "Hard",
         "min": 340,
         "max": 390
     },
     {
-        "name": "보스 몬스터: 최초의 대적자 (익스트림)",
+        "name": "최초의 대적자",
+        "difficulty": "Extreme",
         "min": 460,
         "max": 510
     },
     {
-        "name": "카링 (스토리)",
+        "name": "카링",
+        "difficulty": "Easy",
         "min": 230,
         "max": 280
     },
     {
-        "name": "카링 (이지)",
-        "min": 230,
-        "max": 280
-    },
-    {
-        "name": "카링 (노멀)",
+        "name": "카링",
+        "difficulty": "Normal",
         "min": 330,
         "max": 380
     },
     {
-        "name": "카링 (하드)",
+        "name": "카링",
+        "difficulty": "Hard",
         "min": 350,
         "max": 400
     },
     {
-        "name": "카링 (익스트림)",
+        "name": "카링",
+        "difficulty": "Extreme",
         "min": 480,
         "max": 530
     },
     {
-        "name": "림보 (스토리)",
-        "min": 400,
-        "max": 450
-    },
-    {
-        "name": "림보 (노멀/하드)",
+        "name": "림보",
+        "difficulty": "All",
         "min": 500,
         "max": 550
     },
     {
-        "name": "발드릭스 (스토리)",
-        "min": 500,
-        "max": 550
-    },
-    {
-        "name": "발드릭스 (노멀/하드)",
+        "name": "발드릭스",
+        "difficulty": "All",
         "min": 700,
         "max": 750
     }
