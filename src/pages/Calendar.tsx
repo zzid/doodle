@@ -8,9 +8,6 @@ import React, {
     PropsWithChildren,
 } from "react";
 import dayjs, { Dayjs } from "dayjs";
-import isoWeek from "dayjs/plugin/isoWeek";
-import weekday from "dayjs/plugin/weekday";
-import localeData from "dayjs/plugin/localeData";
 import styled from "@emotion/styled";
 import { motion } from "framer-motion";
 
@@ -87,12 +84,17 @@ const EVENT_END_DATE = dayjs("2026-03-18");
 
 const WEEKDAYS = ["목", "금", "토", "일", "월", "화", "수"];
 
+// Mobile friendly & adaptive paddings
 const PageWrap = styled.div`
     padding: 24px;
     max-width: 1080px;
     color: ${colors.pageText};
     margin-left: auto;
     margin-right: auto;
+
+    @media (max-width: 600px) {
+        padding: 10px;
+    }
 `;
 
 const MainLayout = styled.div`
@@ -103,11 +105,20 @@ const MainLayout = styled.div`
         flex-direction: column;
         gap: 22px;
     }
+    @media (max-width: 600px) {
+        gap: 10px;
+    }
 `;
 
+// Columns are now 100% width on mobile
 const LeftCol = styled.div`
     flex: 3 1 0;
     min-width: 320px;
+
+    @media (max-width: 600px) {
+        min-width: 0;
+        width: 100%;
+    }
 `;
 
 const RightCol = styled.div`
@@ -120,6 +131,11 @@ const RightCol = styled.div`
         position: static;
         margin-top: 2rem;
     }
+    @media (max-width: 600px) {
+        min-width: 0;
+        width: 100%;
+        margin-top: 1rem;
+    }
 `;
 
 const EffectsBarWrap = styled.div`
@@ -127,6 +143,9 @@ const EffectsBarWrap = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
+    @media (max-width: 600px) {
+        align-items: stretch;
+    }
 `;
 
 const EffectsTitle = styled.div`
@@ -136,6 +155,10 @@ const EffectsTitle = styled.div`
     margin-bottom: 12px;
     letter-spacing: -1px;
     text-align: center;
+    @media (max-width: 600px) {
+        font-size: 1rem;
+        margin-bottom: 7px;
+    }
 `;
 
 const EffectBoxStyled = styled(motion.a)<{
@@ -162,7 +185,8 @@ const EffectBoxStyled = styled(motion.a)<{
     display: flex;
     align-items: center;
     gap: 10px;
-    transition: box-shadow 0.22s, border 0.16s, background 0.17s;
+    transition: box-shadow 0.22s, border 0.16s, background 0.17s,
+        font-weight 0.15s;
     font-weight: ${({ highlighted }) => (highlighted ? 700 : 500)};
     text-decoration: none;
     outline: ${({ highlighted }) =>
@@ -170,8 +194,16 @@ const EffectBoxStyled = styled(motion.a)<{
     outline-offset: ${({ highlighted }) => (highlighted ? "0.5px" : "0")};
     position: relative;
 
-    &:hover {
+    &:hover,
+    &:focus {
         box-shadow: ${colors.effectBoxHoverShadow};
+    }
+
+    @media (max-width: 600px) {
+        padding: 8px 12px 8px 9px;
+        min-width: 40px;
+        font-size: 0.99rem;
+        gap: 7px;
     }
 `;
 
@@ -181,6 +213,9 @@ const EffectCount = styled.div`
     margin-right: 2px;
     color: ${colors.effectCount};
     text-shadow: ${colors.effectCountShadow};
+    @media (max-width: 600px) {
+        font-size: 1.05rem;
+    }
 `;
 
 const EffectDesc = styled.div`
@@ -188,6 +223,9 @@ const EffectDesc = styled.div`
     font-weight: 500;
     line-height: 1.3;
     word-break: keep-all;
+    @media (max-width: 600px) {
+        font-size: 0.9rem;
+    }
 `;
 
 const MonthTitle = styled.div`
@@ -195,6 +233,10 @@ const MonthTitle = styled.div`
     font-size: 1.12rem;
     margin-bottom: 0.4em;
     letter-spacing: -1px;
+    @media (max-width: 600px) {
+        font-size: 1.01rem;
+        margin-bottom: 0.2em;
+    }
 `;
 
 const DayOfWeekRow = styled.div`
@@ -204,6 +246,10 @@ const DayOfWeekRow = styled.div`
     border-bottom: 1px solid ${colors.dayWeekBorderBottom};
     margin-bottom: 3px;
     font-weight: 500;
+    @media (max-width: 600px) {
+        gap: 2.5px;
+        font-size: 0.99rem;
+    }
 `;
 
 const WeekdayCell = styled.div<{ idx: number }>`
@@ -220,6 +266,9 @@ const CalendarGrid = styled.div`
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 5px;
+    @media (max-width: 600px) {
+        gap: 2.5px;
+    }
 `;
 
 const CalendarCell = styled(motion.div)<{
@@ -265,12 +314,20 @@ const CalendarCell = styled(motion.div)<{
                 ? colors.cellHighlightShadow
                 : colors.cellHoverShadow};
     }
+    @media (max-width: 600px) {
+        padding: 6px;
+        min-height: 40px;
+        border-radius: 5px;
+    }
 `;
 
 const CellDayNum = styled.div`
     font-weight: 600;
     font-size: 15px;
     color: ${colors.cellDayNum};
+    @media (max-width: 600px) {
+        font-size: 13px;
+    }
 `;
 
 const Badge = styled.span<{ isCountUpDay: boolean; shouldEmphasize?: boolean }>`
@@ -292,27 +349,37 @@ const Badge = styled.span<{ isCountUpDay: boolean; shouldEmphasize?: boolean }>`
     padding: 0px 7px;
     border-radius: 12px;
     margin-top: 2px;
+    @media (max-width: 600px) {
+        font-size: 9px;
+        padding: 0px 6px;
+        margin-top: 1px;
+    }
 `;
 
 const InfoSection = styled.div`
     margin-top: 24px;
     font-size: 13px;
     color: ${colors.infoSection};
+    @media (max-width: 600px) {
+        font-size: 11px;
+        margin-top: 12px;
+    }
 `;
 
-// highlight context 추가
+// --- highlight context with showHighlight and setHighlightDate ---
 type CalendarHighlightContextType = {
     highlightDate: string | null;
-    setHighlightDate: (date: string | null) => void;
+    showHighlight: boolean;
+    setHighlightDate: (date: string | null, showHighlight?: boolean) => void;
 };
 const CalendarHighlightContext = createContext<CalendarHighlightContextType>({
     highlightDate: null,
+    showHighlight: false,
     setHighlightDate: () => {},
 });
 
 export const useCalendarHighlight = () => useContext(CalendarHighlightContext);
 
-// Declaratively get a list of months from start to end (inclusive)
 const getMonthList = (start: Dayjs, end: Dayjs): Dayjs[] =>
     Array.from(
         {
@@ -386,8 +453,6 @@ const EFFECT_DAY_ANCHOR_PREFIX = "effect-day-";
 
 // Find the day when effect with specific count is achieved
 const getDayForEffectCount = (count: number): Dayjs | null => {
-    // effect count is (weekNum * 5 + countInThisWeek=day) from event start day (must be THU~MON)
-    let totalDays = 0;
     let currDay = EVENT_START_DATE.clone();
     while (
         currDay.isSameOrBefore(EVENT_END_DATE, "day") &&
@@ -403,22 +468,19 @@ const getDayForEffectCount = (count: number): Dayjs | null => {
     return currDay;
 };
 
-// ---------------- PRESENTATIONAL CALENDAR COMPONENTS -----------------
+// --- PRESENTATIONAL CALENDAR COMPONENTS ---
 
-// Give info on for which counts a particular day is an "effect day"
 function getEffectCountForDay(day: Dayjs): number | null {
     const count = getCountForDate(day);
     if (effectData.some((e) => e.count === count)) return count;
     return null;
 }
 
-// Single calendar cell
 const CalendarDayCell: React.FC<{
     date: Dayjs;
     today: Dayjs;
 }> = ({ date, today }) => {
     const count = getCountForDate(date);
-    const effect = getEffectForCount(count);
     const isToday = formatDate(date) === formatDate(today);
     const dayIdxInWeek = date.diff(getStartOfEventWeek(date), "day");
     const isCountUpDay = dayIdxInWeek >= 0 && dayIdxInWeek <= 4;
@@ -426,22 +488,21 @@ const CalendarDayCell: React.FC<{
         effectData.some((eff) => eff.count === count) && isCountUpDay;
 
     // highlight context
-    const { highlightDate, setHighlightDate } = useCalendarHighlight();
-    const isHighlighted = highlightDate === formatDate(date);
+    const { highlightDate, setHighlightDate, showHighlight } =
+        useCalendarHighlight();
+    const isHighlighted = highlightDate === formatDate(date) && showHighlight;
 
-    // Auto remove highlight when cell is highlighted (after timeout)
+    // -- Fix: only highlight for 1500ms when highlightDate is changed,
+    //        never persistent after card click.
     useEffect(() => {
-        let timeout: ReturnType<typeof setTimeout> | null = null;
         if (isHighlighted) {
-            timeout = setTimeout(() => {
-                setHighlightDate(null);
+            // Only clear if it's this cell being highlighted
+            const timeout = setTimeout(() => {
+                setHighlightDate(null, false);
             }, 1500);
+            return () => clearTimeout(timeout);
         }
-        return () => {
-            if (timeout) clearTimeout(timeout);
-        };
-        // eslint-disable-next-line
-    }, [isHighlighted]);
+    }, [isHighlighted, setHighlightDate]);
 
     // For anchor
     const effectAnchor = isEffectDay
@@ -591,7 +652,7 @@ const EffectsVerticalBar: React.FC<{ today: Dayjs }> = ({ today }) => {
         }
     }, [todayCount]);
 
-    // Vertical 스타일을 위한 재정의
+    // Mobile friendly column
     const EffectsColumn = styled.div`
         display: flex;
         flex-direction: column;
@@ -601,14 +662,16 @@ const EffectsVerticalBar: React.FC<{ today: Dayjs }> = ({ today }) => {
         justify-content: flex-start;
         padding: 6px 0 10px 0;
         font-size: 11px;
+        @media (max-width: 600px) {
+            gap: 3px;
+            padding: 2px 0 5px 0;
+        }
     `;
 
-    // 클릭 시 달력 셀로 이동하고 셀 highlight 활성화
     const handleEffectClick = (
         e: React.MouseEvent,
         eff: (typeof effectDays)[number]
     ) => {
-        // prevent default anchor scroll
         e.preventDefault();
         if (eff.day) {
             const anchorId = `${EFFECT_DAY_ANCHOR_PREFIX}${eff.count}`;
@@ -620,7 +683,8 @@ const EffectsVerticalBar: React.FC<{ today: Dayjs }> = ({ today }) => {
                     inline: "center",
                 });
             }
-            setHighlightDate(formatDate(eff.day));
+            // Set highlight + showHighlight as true
+            setHighlightDate(formatDate(eff.day), true);
         }
     };
 
@@ -656,7 +720,7 @@ const EffectsVerticalBar: React.FC<{ today: Dayjs }> = ({ today }) => {
                                       )}`
                                     : undefined
                             }
-                            style={{ width: "100%" }} // full width box
+                            style={{ width: "100%" }}
                             onClick={(e) => handleEffectClick(e, eff)}
                         >
                             <EffectCount>{eff.count}</EffectCount>
@@ -669,14 +733,24 @@ const EffectsVerticalBar: React.FC<{ today: Dayjs }> = ({ today }) => {
     );
 };
 
-// highlight provider
+// highlight provider (with showHighlight flag) to prevent forever highlight
 const CalendarHighlightProvider: React.FC<PropsWithChildren<{}>> = ({
     children,
 }) => {
-    const [highlightDate, setHighlightDate] = useState<string | null>(null);
+    const [highlightDate, setHighlightDateState] = useState<string | null>(
+        null
+    );
+    const [showHighlight, setShowHighlight] = useState(false);
+
+    // Called from both cell and card
+    const setHighlightDate = (date: string | null, show?: boolean) => {
+        setHighlightDateState(date);
+        setShowHighlight(!!show);
+    };
+
     return (
         <CalendarHighlightContext.Provider
-            value={{ highlightDate, setHighlightDate }}
+            value={{ highlightDate, showHighlight, setHighlightDate }}
         >
             {children}
         </CalendarHighlightContext.Provider>
@@ -691,7 +765,13 @@ export const CalendarPage = () => {
     return (
         <CalendarHighlightProvider>
             <PageWrap>
-                <h3>
+                <h3
+                    style={{
+                        fontSize: "1.16rem",
+                        marginBottom: 8,
+                        lineHeight: 1.33,
+                    }}
+                >
                     전체 이벤트 달력 (시작:{" "}
                     <b>{EVENT_START_DATE.format("YYYY.MM.DD (dd)")}</b> ~{" "}
                     <b>{EVENT_END_DATE.format("YYYY.MM.DD (dd)")}</b>)

@@ -29,10 +29,6 @@ export const routes = [
                 element: <HomePage />,
             },
             {
-                path: "app",
-                element: <App />,
-            },
-            {
                 path: "exp-coupon",
                 element: <ExpCouponPage />,
             },
