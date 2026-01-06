@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { Button, Tag } from "antd";

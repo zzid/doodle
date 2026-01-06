@@ -1,5 +1,7 @@
+"use client";
+
 import React from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import styled from "@emotion/styled";
 import { motion } from "framer-motion";
 
@@ -36,7 +38,7 @@ const Grid = styled.div`
     margin-top: 32px;
 `;
 
-const Card = styled(motion(Link))`
+const CardContainer = styled(motion.div)`
     display: block;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -53,6 +55,12 @@ const Card = styled(motion(Link))`
         transform: translateY(-4px);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
     }
+`;
+
+const CardLink = styled(Link)`
+    display: block;
+    text-decoration: none;
+    color: inherit;
 `;
 
 const CardTitle = styled.h3`
@@ -79,9 +87,16 @@ const CardPath = styled.div`
 
 const pageData = [
     {
+        path: "/mepo",
+        title: "Mepo Chart",
+        description: "Mepo chart viewer",
+        emoji: "💰",
+    },
+    {
         path: "/calendar",
         title: "Event Calendar",
-        description: "Interactive calendar with event tracking and cumulative count system",
+        description:
+            "Interactive calendar with event tracking and cumulative count system",
         emoji: "📅",
     },
     {
@@ -120,6 +135,7 @@ const pageData = [
         description: "MapleStory event calendar viewer",
         emoji: "🍁",
     },
+
     {
         path: "/app",
         title: "App",
@@ -139,10 +155,9 @@ const containerVariants = {
 };
 
 const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0 },
     visible: {
         opacity: 1,
-        y: 0,
         transition: {
             duration: 0.5,
         },
@@ -161,26 +176,28 @@ export const HomePage = () => {
             >
                 <Grid>
                     {pageData.map((page) => (
-                        <Card
+                        <CardContainer
                             key={page.path}
-                            to={page.path}
                             variants={cardVariants}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                         >
-                            <CardTitle>
-                                <span style={{ marginRight: "8px" }}>
-                                    {page.emoji}
-                                </span>
-                                {page.title}
-                            </CardTitle>
-                            <CardDescription>{page.description}</CardDescription>
-                            <CardPath>{page.path}</CardPath>
-                        </Card>
+                            <CardLink href={page.path}>
+                                <CardTitle>
+                                    <span style={{ marginRight: "8px" }}>
+                                        {page.emoji}
+                                    </span>
+                                    {page.title}
+                                </CardTitle>
+                                <CardDescription>
+                                    {page.description}
+                                </CardDescription>
+                                <CardPath>{page.path}</CardPath>
+                            </CardLink>
+                        </CardContainer>
                     ))}
                 </Grid>
             </motion.div>
         </PageContainer>
     );
 };
-
