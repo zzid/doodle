@@ -52,7 +52,7 @@ export default function MotionPage() {
             </motion.svg>
         </div>
     );
-};
+}
 
 const Equalizer = () => {
     return (

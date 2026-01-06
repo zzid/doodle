@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { ThemeProvider } from "@emotion/react";
-import "../src/styles/index.css";
+import "@/styles/index.css";
 import "@/dayjs/dayjs";
 const theme = {
     colors: {
