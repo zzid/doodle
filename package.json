@@ -6,11 +6,10 @@
     "dependencies": {
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.1",
-        "antd": "^5.20.1",
         "chart.js": "^4.5.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "dayjs": "^1.11.12",
+        "dayjs": "^1.11.19",
         "framer-motion": "^12.23.22",
         "immer": "^10.1.1",
         "lodash-es": "^4.17.21",
@@ -51,7 +50,6 @@
         "@types/node": "^20.0.0",
         "@types/react": "^18.0.0",
         "@types/react-dom": "^18.0.0",
-        "@emotion/babel-plugin": "^11.11.0",
         "babel-plugin-styled-components": "^2.1.4",
         "gh-pages": "^6.3.0",
         "typescript": "^5.2.2"

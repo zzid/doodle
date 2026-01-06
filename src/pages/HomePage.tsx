@@ -164,7 +164,7 @@ const cardVariants = {
     },
 };
 
-export const HomePage = () => {
+export default function HomePage() {
     return (
         <PageContainer>
             <Title>Doodle</Title>

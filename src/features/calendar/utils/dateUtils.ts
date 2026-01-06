@@ -63,9 +63,7 @@ export const getCountForDate = (
     if (diffDays < 0) return 0;
 
     const thisWeekStart = getStartOfEventWeek(date, weekStartDay);
-    const weekNum = Math.floor(
-        thisWeekStart.diff(eventStartDate, "day") / 7
-    );
+    const weekNum = Math.floor(thisWeekStart.diff(eventStartDate, "day") / 7);
     const dayIdxInWeek = date.diff(thisWeekStart, "day");
     const countInThisWeek = Math.min(
         Math.max(dayIdxInWeek + 1, 0),
@@ -110,4 +108,3 @@ export const getEffectCountForDay = (
     if (config.effectData.some((e) => e.count === count)) return count;
     return null;
 };
-

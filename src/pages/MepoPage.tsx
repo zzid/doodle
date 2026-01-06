@@ -1,7 +1,7 @@
 import React from "react";
 import MepoChart from "@/features/mepo-chart/MepoChart";
 
-export const MepoPage = () => {
+export default function MepoPage() {
     return (
         <div>
             <MepoChart />

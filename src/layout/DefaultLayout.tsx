@@ -1,8 +1,7 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
 import { css } from "@emotion/react";
 
-export const DefaultLayout = () => {
+export const DefaultLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <div
             style={{
@@ -50,7 +49,7 @@ export const DefaultLayout = () => {
                 position: "relative",
             }}
         >
-            <Outlet />
+            {children}
         </div>
     );
 };

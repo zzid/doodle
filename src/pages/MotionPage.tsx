@@ -7,7 +7,7 @@ import {
     MobiusStrip,
 } from "@/features/motions";
 
-export const MotionPage = () => {
+export default function MotionPage() {
     return (
         <div className="flex p-5 flex-col gap-5 justify-center items-center">
             <Equalizer />

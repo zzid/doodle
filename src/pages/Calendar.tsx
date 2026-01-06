@@ -1,5 +1,5 @@
 import React from "react";
-import dayjs from "dayjs";
+import { dayjs } from "@/lib/dayjs";
 import { Calendar, CalendarHighlightProvider } from "../features/calendar";
 import {
     calendarConfig,
@@ -7,7 +7,7 @@ import {
     infoTexts,
 } from "../features/calendar/constants";
 
-export const CalendarPage = () => {
+export default function CalendarPage() {
     const today = dayjs();
 
     return (
@@ -20,4 +20,4 @@ export const CalendarPage = () => {
             />
         </CalendarHighlightProvider>
     );
-};
+}

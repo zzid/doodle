@@ -1,7 +1,7 @@
 import React from "react";
 import { CoinShop, Buff } from "@/features/event-2408";
 
-export const Event2408Page = () => {
+export default function Event2408Page() {
     return (
         <div className="p-[50px]">
             <div>

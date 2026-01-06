@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { omit } from "lodash-es";
-import dayjs from "dayjs";
+import { dayjs } from "@/lib/dayjs";
 import {
     CHAMPION_BURING_COIN_SHOP,
     COIN_SHOP_STORE_STORAGE_KEY,

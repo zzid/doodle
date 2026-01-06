@@ -1,7 +1,7 @@
 import React from "react";
 import { ExpCoupon } from "@/features/exp-coupon";
 
-export const ExpCouponPage = () => {
+export default function ExpCouponPage() {
     return (
         <div>
             <ExpCoupon />

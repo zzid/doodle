@@ -1,7 +1,5 @@
 import React from "react";
-import { Badge, Button, Calendar, Typography } from "antd";
-import dayjs from "dayjs";
-import CheckableTag from "antd/es/tag/CheckableTag";
+import { dayjs, Dayjs } from "@/lib/dayjs";
 
 const BOSS = {
     스우: { n: 10, h: 50 },
@@ -24,83 +22,196 @@ const REQUIRED = {
     진힐라: 1000,
 };
 
+const WEEKDAYS_KR = ["일", "월", "화", "수", "목", "금", "토"];
+
+function getMonthMatrix(base: Dayjs) {
+    // Start at first day of month, then go back to previous Sunday
+    const first = base.startOf("month");
+    const last = base.endOf("month");
+    let start = first;
+    if (first.day() !== 0) {
+        start = first.subtract(first.day(), "day");
+    }
+    let cursor = start;
+    const matrix: Dayjs[][] = [];
+    while (cursor.isBefore(last) || cursor.isSame(last, "day")) {
+        const week: Dayjs[] = [];
+        for (let d = 0; d < 7; d++) {
+            week.push(cursor);
+            cursor = cursor.add(1, "day");
+        }
+        matrix.push(week);
+        if (cursor.isAfter(last, "day") && cursor.day() === 0) break;
+    }
+    // Add extra week if the last day is not Saturday
+    if (!matrix[matrix.length - 1][6].isSame(last, "day")) {
+        const week: Dayjs[] = [];
+        for (let d = 0; d < 7; d++) {
+            week.push(cursor);
+            cursor = cursor.add(1, "day");
+        }
+        matrix.push(week);
+    }
+    return matrix;
+}
+
+function isSameDay(a: Dayjs, b: Dayjs) {
+    return a.isSame(b, "day");
+}
+
 export const UnleashCalendar = () => {
-    const [selected, setSelected] = React.useState<any[]>([]);
-    console.log("selected : ", selected);
+    const [selected, setSelected] = React.useState<Dayjs[]>([]);
+    const [viewMonth, setViewMonth] = React.useState(dayjs());
+
+    // Handle date cell click
+    const handleDateSelect = (value: Dayjs) => {
+        setSelected([]);
+        let inSelected: Dayjs[] = [];
+
+        // Back to previous Thursday (4)
+        let a = value.clone();
+        inSelected.push(a.clone());
+        let cursor = a.clone().subtract(1, "day");
+        while (cursor.day() !== 4) {
+            inSelected.push(cursor.clone());
+            cursor = cursor.subtract(1, "day");
+        }
+        inSelected.push(cursor.clone());
+
+        // Forward to next Thursday
+        cursor = a.clone().add(1, "day");
+        while (cursor.day() !== 4) {
+            inSelected.push(cursor.clone());
+            cursor = cursor.add(1, "day");
+        }
+        inSelected.push(cursor.clone());
+
+        setSelected(inSelected);
+    };
+
+    // Render calendar grid
+    const monthMatrix = getMonthMatrix(viewMonth);
+
     return (
-        <>
-            <div className="w-[70%] m-auto">
-                <Calendar
-                    headerRender={(args) => <Header {...args} />}
-                    cellRender={(
-                        current,
-                        { originNode, today, range, type }
-                    ) => {
-                        // console.log("current : ", current);
-                        // console.log("type : ", type);
-                        return (
-                            <>
-                                {dayjs(current).weekday() === 4 && (
-                                    <Badge color="green" text="start" />
-                                )}
-                                {selected?.find((s) => s.isSame(current)) && (
-                                    <Badge color="blue" text="selected" />
-                                )}
-                            </>
-                        );
-                    }}
-                    onSelect={(value, type) => {
-                        setSelected([]);
-                        let a = value.clone();
-                        console.log("a : ", a);
-                        while (a.weekday() !== 4) {
-                            const currentA = a.clone();
-                            setSelected((prev) => {
-                                return [...prev, currentA];
-                            });
-                            a = a.subtract(1, "day");
-                        }
+        <div className="w-[70%] m-auto">
+            <Header value={viewMonth} onChange={setViewMonth} />
 
-                        let b = value.clone();
-                        while (b.weekday() !== 4) {
-                            const currentA = b.clone();
-                            setSelected((prev) => {
-                                return [...prev, currentA];
-                            });
-                            b = b.add(1, "day");
-                        }
-
-                        // const a = dayjs(value).subtract(1, "week").weekday(4);
-                        // console.log("a : ", a);
-                        return;
-                    }}
-                />
+            <div className="border rounded-lg overflow-hidden shadow bg-white mt-3">
+                <table className="min-w-full table-fixed">
+                    <thead>
+                        <tr>
+                            {WEEKDAYS_KR.map((d, i) => (
+                                <th
+                                    key={d}
+                                    className={
+                                        "py-2 bg-gray-100 font-bold " +
+                                        (i === 0
+                                            ? "text-red-500"
+                                            : i === 6
+                                            ? "text-blue-500"
+                                            : "text-gray-700")
+                                    }
+                                >
+                                    {d}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {monthMatrix.map((week, wi) => (
+                            <tr key={wi}>
+                                {week.map((date, di) => {
+                                    const isCurrentMonth =
+                                        date.month() === viewMonth.month();
+                                    const isToday = isSameDay(date, dayjs());
+                                    const isSelected = selected.find((s) =>
+                                        isSameDay(s, date)
+                                    );
+                                    const isStartDay = date.day() === 4;
+                                    return (
+                                        <td
+                                            key={di}
+                                            className={
+                                                "h-20 text-center align-top transition cursor-pointer select-none " +
+                                                (isCurrentMonth
+                                                    ? "bg-white"
+                                                    : "bg-gray-50 text-gray-400") +
+                                                (isSelected
+                                                    ? " border-2 border-blue-400"
+                                                    : " border border-gray-200") +
+                                                (isToday
+                                                    ? " font-bold text-green-700"
+                                                    : "")
+                                            }
+                                            onClick={() =>
+                                                handleDateSelect(date)
+                                            }
+                                        >
+                                            <div
+                                                className="relative flex flex-col items-center"
+                                                style={{ minHeight: 60 }}
+                                            >
+                                                <span>{date.date()}</span>
+                                                {isStartDay && (
+                                                    <span
+                                                        className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-200 text-green-800"
+                                                        style={{
+                                                            fontSize: 12,
+                                                        }}
+                                                    >
+                                                        start
+                                                    </span>
+                                                )}
+                                                {isSelected && (
+                                                    <span
+                                                        className="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-200 text-blue-800"
+                                                        style={{
+                                                            fontSize: 12,
+                                                        }}
+                                                    >
+                                                        selected
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    );
+                                })}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
-        </>
+        </div>
     );
 };
 
-const Header = ({ value, type, onChange, onTypeChange }: any) => {
+const Header = ({
+    value,
+    onChange,
+}: {
+    value: Dayjs;
+    onChange: (v: Dayjs) => void;
+}) => {
+    const prevMonth = value.clone().subtract(1, "month");
+    const nextMonth = value.clone().add(1, "month");
     return (
-        <div style={{ padding: 10 }}>
-            <div className="flex flex-row items-center justify-between">
-                <Typography.Title level={4}>
-                    {value.format("YYYY년 MM월")}
-                </Typography.Title>
-                <div className="flex flex-row gap-3">
-                    <Button
-                        onClick={() =>
-                            onChange(value.clone().subtract(1, "month"))
-                        }
-                    >
-                        {value.subtract(1, "month").format("YYYY년 MM월")}
-                    </Button>
-                    <Button
-                        onClick={() => onChange(value.clone().add(1, "month"))}
-                    >
-                        {value.add(1, "month").format("YYYY년 MM월")}
-                    </Button>
-                </div>
+        <div className="flex flex-row items-center justify-between p-4">
+            <h2 className="text-2xl font-bold">
+                {value.format("YYYY년 MM월")}
+            </h2>
+            <div className="flex flex-row gap-2">
+                <button
+                    className="rounded px-4 py-2 bg-gray-100 border hover:bg-gray-200 transition"
+                    onClick={() => onChange(prevMonth)}
+                >
+                    {prevMonth.format("YYYY년 MM월")}
+                </button>
+                <button
+                    className="rounded px-4 py-2 bg-gray-100 border hover:bg-gray-200 transition"
+                    onClick={() => onChange(nextMonth)}
+                >
+                    {nextMonth.format("YYYY년 MM월")}
+                </button>
             </div>
         </div>
     );
