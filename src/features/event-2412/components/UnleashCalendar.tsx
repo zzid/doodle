@@ -1,5 +1,5 @@
 import React from "react";
-import { dayjs, Dayjs } from "@/lib/dayjs";
+import { dayjs, Dayjs } from "@/dayjs/dayjs";
 
 const BOSS = {
     스우: { n: 10, h: 50 },

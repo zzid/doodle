@@ -1,5 +1,5 @@
 import React from "react";
-import { dayjs } from "@/lib/dayjs";
+import { dayjs } from "@/dayjs/dayjs";
 import { Calendar, CalendarHighlightProvider } from "../features/calendar";
 import {
     calendarConfig,

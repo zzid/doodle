@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect } from "react";
-import { dayjs, Dayjs } from "@/lib/dayjs";
+import { dayjs, Dayjs } from "@/dayjs/dayjs";
 
 import { motion } from "framer-motion";
 import { CalendarProps } from "../types";

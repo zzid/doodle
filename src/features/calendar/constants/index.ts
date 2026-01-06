@@ -1,5 +1,5 @@
 import { CalendarConfig, CalendarColors } from "../types";
-import { dayjs } from "@/lib/dayjs";
+import { dayjs } from "@/dayjs/dayjs";
 
 // ---- Color Variables ---- //
 export const colors: CalendarColors = {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { dayjs } from "@/lib/dayjs";
+import { dayjs } from "@/dayjs/dayjs";
 import { HOLIDAYS } from "@/data";
 const DIFF_THRESHOLD = 7;
 const EVENT: any[] = [

@@ -6,7 +6,7 @@
                 "paths": [
                     {
                         "name": "dayjs",
-                        "message": "Use @/lib/dayjs instead so plugins are always applied."
+                        "message": "Use @/dayjs/dayjs instead so plugins are always applied."
                     }
                 ]
             }
