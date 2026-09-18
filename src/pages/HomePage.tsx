@@ -87,6 +87,12 @@ const CardPath = styled.div`
 
 const pageData = [
     {
+        path: "/mvp",
+        title: "MVP 회수율 계산기",
+        description: "MVP 실질비용과 크레딧을 활용한 플가 추가 회수 계산",
+        emoji: "🧮",
+    },
+    {
         path: "/mepo",
         title: "Mepo Chart",
         description: "Mepo chart viewer",
