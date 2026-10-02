@@ -2,7 +2,7 @@ import React, { useMemo, useRef, useEffect } from "react";
 import { dayjs, Dayjs } from "@/dayjs/dayjs";
 
 import { motion } from "framer-motion";
-import { CalendarProps } from "../types";
+import { CalendarProps, CalendarColors } from "../types";
 import { createCalendarStyles } from "../styles/calendarStyles";
 import {
     formatDate,
@@ -19,13 +19,15 @@ import {
     getMonthAnimation,
 } from "../utils/motionConfig";
 import { useCalendarHighlight } from "./CalendarHighlightProvider";
-import { colors } from "../constants";
+import { getCalendarColors } from "../constants/theme";
+import { useDarkMode } from "../hooks/useDarkMode";
 interface CalendarDayCellProps {
     date: Dayjs;
     today: Dayjs;
     config: CalendarProps["config"];
-    colors: CalendarProps["colors"];
+    colors: CalendarColors; // Always defined at this point
     styles: ReturnType<typeof createCalendarStyles>;
+    renderCell?: CalendarProps["renderCell"];
 }
 
 const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
@@ -34,16 +36,23 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
     config,
     colors,
     styles,
+    renderCell,
 }) => {
     const { CalendarCell, CellDayNum, Badge } = styles;
-    const count = getCountForDate(date, config);
     const isToday = formatDate(date) === formatDate(today);
-    const thisWeekStart = getStartOfEventWeek(date, config.weekStartDay || 4);
-    const dayIdxInWeek = date.diff(thisWeekStart, "day");
-    const isCountUpDay =
-        dayIdxInWeek >= 0 && dayIdxInWeek < (config.countUpDaysPerWeek || 5);
-    const isEffectDay =
-        config.effectData.some((eff) => eff.count === count) && isCountUpDay;
+
+    // Get events for this date
+    const events = config.getEventsForDate ? config.getEventsForDate(date) : [];
+
+    // Get count (for legacy support)
+    const count = config.getCountForDate
+        ? config.getCountForDate(date)
+        : getCountForDate(date, config);
+
+    // Check if this is a special date
+    const isSpecial = config.isSpecialDate
+        ? config.isSpecialDate(date, events)
+        : config.effectData?.some((eff) => eff.count === count) ?? false;
 
     const { highlightDate, setHighlightDate, showHighlight } =
         useCalendarHighlight();
@@ -51,21 +60,56 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
     const isHighlighted = highlightDate === formatDate(date) && showHighlight;
 
     const anchorPrefix = config.anchorPrefix || "effect-day-";
-    const effectAnchor = isEffectDay ? `${anchorPrefix}${count}` : undefined;
+    const effectAnchor = isSpecial
+        ? `${anchorPrefix}${count || date.format("YYYY-MM-DD")}`
+        : undefined;
 
     const animation = getCellAnimation(
         isHighlighted,
         isToday,
-        isEffectDay,
+        isSpecial,
         colors
     );
-    const transition = getCellTransition(isHighlighted, isToday, isEffectDay);
+    const transition = getCellTransition(isHighlighted, isToday, isSpecial);
     const initial = getCellInitial(isToday);
+
+    // Use custom renderer if provided
+    if (renderCell) {
+        const customContent = renderCell({
+            date,
+            today,
+            isToday,
+            isSpecial,
+            isHighlighted,
+            events,
+            count,
+        });
+
+        return (
+            <CalendarCell
+                isToday={isToday}
+                isEffectDay={isSpecial}
+                isHighlighted={isHighlighted}
+                id={effectAnchor}
+                initial={initial}
+                animate={animation}
+                transition={transition}
+            >
+                {customContent}
+            </CalendarCell>
+        );
+    }
+
+    // Default rendering (legacy support)
+    const thisWeekStart = getStartOfEventWeek(date, config.weekStartDay || 4);
+    const dayIdxInWeek = date.diff(thisWeekStart, "day");
+    const isCountUpDay =
+        dayIdxInWeek >= 0 && dayIdxInWeek < (config.countUpDaysPerWeek || 5);
 
     return (
         <CalendarCell
             isToday={isToday}
-            isEffectDay={isEffectDay}
+            isEffectDay={isSpecial}
             isHighlighted={isHighlighted}
             id={effectAnchor}
             initial={initial}
@@ -74,10 +118,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
         >
             <CellDayNum>{date.date()}</CellDayNum>
             <div>
-                <Badge
-                    isCountUpDay={isCountUpDay}
-                    shouldEmphasize={isEffectDay}
-                >
+                <Badge isCountUpDay={isCountUpDay} shouldEmphasize={isSpecial}>
                     {isCountUpDay ? `Count ${count}` : `누적 ${count}`}
                 </Badge>
             </div>
@@ -90,6 +131,8 @@ interface MonthCalendarProps {
     config: CalendarProps["config"];
     today: Dayjs;
     styles: ReturnType<typeof createCalendarStyles>;
+    renderCell?: CalendarProps["renderCell"];
+    colors: CalendarColors; // Always defined at this point
 }
 
 const MonthCalendar: React.FC<MonthCalendarProps> = ({
@@ -97,6 +140,8 @@ const MonthCalendar: React.FC<MonthCalendarProps> = ({
     config,
     today,
     styles,
+    renderCell,
+    colors,
 }) => {
     const { MonthTitle, DayOfWeekRow, WeekdayCell, CalendarGrid } = styles;
     const weekdays = config.weekdays || [
@@ -143,6 +188,7 @@ const MonthCalendar: React.FC<MonthCalendarProps> = ({
                             config={config}
                             colors={colors}
                             styles={styles}
+                            renderCell={renderCell}
                         />
                     ) : (
                         <div key={idx} />
@@ -159,6 +205,7 @@ interface EffectsVerticalBarProps {
     colors: CalendarProps["colors"];
     styles: ReturnType<typeof createCalendarStyles>;
     effectsTitle?: string;
+    renderEffectsBar?: CalendarProps["renderEffectsBar"];
 }
 
 const EffectsVerticalBar: React.FC<EffectsVerticalBarProps> = ({
@@ -167,6 +214,7 @@ const EffectsVerticalBar: React.FC<EffectsVerticalBarProps> = ({
     colors,
     styles,
     effectsTitle = "이벤트 누적 달성 효과",
+    renderEffectsBar,
 }) => {
     const {
         EffectsBarWrap,
@@ -177,18 +225,24 @@ const EffectsVerticalBar: React.FC<EffectsVerticalBarProps> = ({
         EffectsColumn,
     } = styles;
     const { setHighlightDate } = useCalendarHighlight();
-    const todayCount = getCountForDate(today, config);
+    const todayCount = config.getCountForDate
+        ? config.getCountForDate(today)
+        : getCountForDate(today, config);
     const anchorPrefix = config.anchorPrefix || "effect-day-";
 
     const effectDays: { count: number; effect: string; day: Dayjs | null }[] =
-        useMemo(
-            () =>
-                config.effectData.map((e) => ({
-                    ...e,
-                    day: getDayForEffectCount(e.count, config),
-                })),
-            [config]
-        );
+        useMemo(() => {
+            if (!config.effectData) return [];
+            return config.effectData.map((e) => ({
+                ...e,
+                day: getDayForEffectCount(e.count, config),
+            }));
+        }, [config]);
+
+    // Use custom effects bar renderer if provided
+    if (renderEffectsBar) {
+        return <>{renderEffectsBar({ today, todayCount, effectDays })}</>;
+    }
 
     const activeRef = useRef<HTMLAnchorElement | null>(null);
 
@@ -268,13 +322,25 @@ const EffectsVerticalBar: React.FC<EffectsVerticalBarProps> = ({
 
 export const Calendar: React.FC<CalendarProps> = ({
     config,
-    colors,
+    colors: colorsProp,
     today,
     infoTexts,
     pageTitle,
     effectsTitle,
+    renderCell,
+    showEffectsBar,
+    renderEffectsBar,
 }) => {
-    const styles = useMemo(() => createCalendarStyles(colors), [colors]);
+    // Use theme system if colors not provided
+    const isDark = useDarkMode();
+    const themeColors: CalendarColors = useMemo(
+        () => colorsProp || getCalendarColors(isDark),
+        [colorsProp, isDark]
+    );
+    const styles = useMemo(
+        () => createCalendarStyles(themeColors),
+        [themeColors]
+    );
     const { PageWrap, MainLayout, LeftCol, RightCol, InfoSection } = styles;
 
     const monthList = getMonthList(config.eventStartDate, config.eventEndDate);
@@ -286,17 +352,25 @@ export const Calendar: React.FC<CalendarProps> = ({
             "YYYY.MM.DD (dd)"
         )} ~ ${config.eventEndDate.format("YYYY.MM.DD (dd)")})`;
 
+    // Determine if effects bar should be shown
+    const shouldShowEffectsBar =
+        showEffectsBar !== undefined
+            ? showEffectsBar
+            : config.effectData && config.effectData.length > 0;
+
     return (
         <PageWrap>
-            <h3
-                style={{
-                    fontSize: "1.16rem",
-                    marginBottom: 8,
-                    lineHeight: 1.33,
-                }}
-            >
-                {defaultPageTitle}
-            </h3>
+            {pageTitle && (
+                <h3
+                    style={{
+                        fontSize: "1.16rem",
+                        marginBottom: 8,
+                        lineHeight: 1.33,
+                    }}
+                >
+                    {defaultPageTitle}
+                </h3>
+            )}
             <MainLayout>
                 <LeftCol>
                     <div style={{ marginTop: 8 }}>
@@ -307,6 +381,8 @@ export const Calendar: React.FC<CalendarProps> = ({
                                 config={config}
                                 today={todayDate}
                                 styles={styles}
+                                renderCell={renderCell}
+                                colors={themeColors}
                             />
                         ))}
                     </div>
@@ -318,15 +394,18 @@ export const Calendar: React.FC<CalendarProps> = ({
                         </InfoSection>
                     )}
                 </LeftCol>
-                <RightCol>
-                    <EffectsVerticalBar
-                        today={todayDate}
-                        config={config}
-                        colors={colors}
-                        styles={styles}
-                        effectsTitle={effectsTitle}
-                    />
-                </RightCol>
+                {shouldShowEffectsBar && (
+                    <RightCol>
+                        <EffectsVerticalBar
+                            today={todayDate}
+                            config={config}
+                            colors={themeColors}
+                            styles={styles}
+                            effectsTitle={effectsTitle}
+                            renderEffectsBar={renderEffectsBar}
+                        />
+                    </RightCol>
+                )}
             </MainLayout>
         </PageWrap>
     );

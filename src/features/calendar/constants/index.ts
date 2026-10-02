@@ -1,58 +1,13 @@
-import { CalendarConfig, CalendarColors } from "../types";
+import { CalendarConfig } from "../types";
 import { dayjs } from "@/dayjs/dayjs";
 
-// ---- Color Variables ---- //
-export const colors: CalendarColors = {
-    white: "#ffffff",
-    pageText: "#ffffff",
-    infoSection: "#777",
-    // Gold/yellow
-    effectTitle: "#ffda44",
-    effectBoxBorderAchieved: "#ffc600",
-    effectBoxBorderNormal: "#e5cb73",
-    effectBoxBgHighlight: "#fffbe5",
-    effectBoxBgAchieved: "#fffbe7",
-    effectBoxBgNormal: "#faf7e3",
-    effectBoxText: "#be9700",
-    effectBoxBoxShadowHighlight: "0 0 8px 1px #fffbe3, 0 3px 14px 0 #ffe47ea1",
-    effectBoxOutline: "#ffd326",
-    effectBoxHoverShadow: "0 0 10px 2px #fffbe386",
-    // Effect Count
-    effectCount: "#f7bb36",
-    effectCountShadow: "0 0 3px #fff5bbad",
-    // Calendar
-    calendarMonthTitle: "#ffffff",
-    dayWeekBorderBottom: "#ddd",
-    cellDayNum: "#000000",
-    // Weekdays
-    weekdayThu: "#2074c5", // idx 0=목
-    weekdayWed: "#b7a600", // idx 6=수
-    weekdayOther: "#444",
-    // Calendar Cell
-    cellBorderEffect: "#ffb75b",
-    cellBorderNormal: "#ccc",
-    cellBgToday: "#fffac1",
-    cellBgEffect: "#fcf5ec",
-    cellBgCountUp: "#f7fafd",
-    cellBgNormal: "#f7fafd",
-    cellShadowToday: "0 0 0 2px #ffe58e8a",
-    cellShadowEffect: "0 0 0 2px #ffebcb80",
-    cellShadowNone: "none",
-    cellHoverBgToday: "#fff5be",
-    cellHoverBgEffect: "#fff3e2",
-    cellHoverBgNormal: "#e9f2fd",
-    cellHoverShadow: "0 0 0 3px #ffe8b733",
-    // Badge
-    badgeEmphasize: "#D7263D",
-    badgeCountUp: "#176fcc",
-    badgeNormal: "#bbb",
-    badgeBgEmphasize: "#ffeaea",
-    badgeBgCountUp: "#e9f2fd",
-    badgeBgNormal: "#f0f0f0",
-    // highlight
-    cellHighlight: "#ffe57f",
-    cellHighlightShadow: "0 0 0 7px #ffdf7f77",
-};
+// Re-export theme functions and constants
+export {
+    lightTheme,
+    darkTheme,
+    getCalendarColors,
+    colors, // deprecated but kept for backward compatibility
+} from "./theme";
 
 export const effectData = [
     { count: 5, effect: "몬스터파크 클리어 경험치 +10%" },

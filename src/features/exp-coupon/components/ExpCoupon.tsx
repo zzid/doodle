@@ -1,21 +1,108 @@
 import React, { useState } from "react";
+import styled from "@emotion/styled";
+import { NORMAL_EXP_COUPON, ADVANCED_EXP_COUPON } from "../data";
+import { css } from "@emotion/react";
+
+const AdvancedBarWrapper = styled.div`
+    position: relative;
+    display: inline-block;
+`;
+
+const AdvBarTooltip = styled.div`
+    visibility: hidden;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 4px 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 12px;
+    pointer-events: none;
+    transition: visibility 0.1s, opacity 0.1s;
+    opacity: 0;
+
+    ${AdvancedBarWrapper}:hover & {
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+`;
+const Bar = styled.div<{ isActive: boolean; height: number }>`
+    width: 10px;
+    background-color: ${({ isActive }) => (isActive ? "skyblue" : "#a0a0a0")};
+    position: relative;
+    font-size: 5px;
+    cursor: pointer;
+    transition: background-color 0.1s;
+    height: ${({ height }) => height}px;
+    &:hover {
+        background-color: #00ffd5 !important;
+    }
+`;
+
+const AdvancedBar = styled.div<{ isActive: boolean; height: number }>`
+    color: orange;
+    font-weight: bold;
+    font-size: 10px;
+    width: 20px;
+    background-color: ${({ isActive }) => (isActive ? "skyblue" : "#a0a0a0")};
+    position: relative;
+    font-size: 5px;
+    cursor: pointer;
+    transition: background-color 0.1s;
+    height: ${({ height }) => height}px;
+    &:hover {
+        background-color: #00ffd5 !important;
+    }
+`;
+
+const Result = styled.div`
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transform: translate(-50%, 0);
+`;
+
+const Wrapper = styled.div`
+    width: 100vw;
+    min-height: 100vh;
+    position: relative;
+`;
+
+const Row = styled.div<{ asAdvanced?: boolean }>`
+    margin: 50px auto;
+    width: 80%;
+    height: 80%;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    align-items: flex-end;
+    ${(props) => props.asAdvanced && "flex-direction: row;"}
+`;
+
+const BarLabel = styled.div<{ advanced?: boolean }>`
+    color: white;
+    font-weight: bold;
+    font-size: ${({ advanced }) => (advanced ? "10px" : "6px")};
+    position: absolute;
+    bottom: -30px;
+    left: -2px;
+`;
 
 export const ExpCoupon = () => {
     const [from, setFrom] = useState<number>(0);
     const [to, setTo] = useState<number>(0);
     const [sum, setSum] = useState<number>(0);
-    const arr = [
-        299, 326, 355, 386, 422, 461, 503, 549, 600, 657, 428, 465, 503, 546,
-        593, 753, 804, 856, 914, 974, 1242, 1300, 1364, 1429, 1501, 1911, 2003,
-        2104, 2207, 2315, 2836, 2871, 2896, 2932, 2964, 3781, 3826, 3877, 3922,
-        3970, 5070, 5065, 5126, 5263, 5269, 6734, 6822, 6912, 7005, 7100, 10088,
-        10229, 10374, 10523, 10675, 10831, 10990, 11154, 11302, 11473, 34418,
-        34762, 35110, 35461, 35815, 46560, 47025, 47496, 47971, 48450, 107559,
-        108635, 109721, 110818, 111927, 226091, 248700, 273570, 300927, 331020,
-        668660, 735526, 809078, 889986, 978984, 1977548, 2175303, 2392833,
-        2632116, 2895328, 5848562, 6433418, 7076760, 7784436, 8562880, 17297016,
-        19026718, 20929390, 23022329, 34533493,
-    ];
+
     const onClick = (idx: number) => {
         if (!!to) {
             setFrom(0);
@@ -30,65 +117,72 @@ export const ExpCoupon = () => {
         if (idx + 200 <= from) {
             setTo(from);
             setFrom(idx + 200);
-            setSum(arr.slice(idx, from - 200).reduce((sum, v) => sum + v, 0));
+            setSum(
+                NORMAL_EXP_COUPON.slice(idx, from - 200).reduce(
+                    (sum, v) => sum + v,
+                    0
+                )
+            );
             return;
         }
 
-        setSum(arr.slice(from - 200, idx).reduce((sum, v) => sum + v, 0));
+        setSum(
+            NORMAL_EXP_COUPON.slice(from - 200, idx).reduce(
+                (sum, v) => sum + v,
+                0
+            )
+        );
         return setTo(idx + 200);
     };
 
     return (
-        <div
-            style={{
-                width: "100vw",
-                height: "100vh",
-            }}
-        >
-            <div
-                style={{
-                    margin: "50px auto",
-                    width: "80%",
-                    height: "80%",
-                    display: "flex",
-                    flexDirection: "row",
-                    gap: 5,
-                    alignItems: "flex-end",
-                }}
-            >
-                {arr.slice(0, 50).map((v, idx) => {
+        <Wrapper>
+            <Row>
+                {NORMAL_EXP_COUPON.slice(0, 50).map((v, idx) => {
+                    const isActive =
+                        (!!to && idx >= from - 200 && idx <= to - 200) ||
+                        idx === from - 200 ||
+                        idx === to - 200;
                     return (
-                        <div
-                            className="bar"
-                            style={{
-                                height: v * 0.05,
-                                ...((!!to &&
-                                    idx >= from - 200 &&
-                                    idx <= to - 200) ||
-                                idx === from - 200 ||
-                                idx === to - 200
-                                    ? { backgroundColor: "skyblue" }
-                                    : {}),
-                            }}
+                        <Bar
+                            key={idx}
+                            isActive={isActive}
+                            height={v * 0.05}
                             onClick={() => onClick(idx)}
                         >
                             {v}
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    fontSize: 5,
-                                    bottom: -30,
-                                    left: -2,
-                                }}
-                            >{`${200 + idx} -> ${200 + idx + 1}`}</div>
-                        </div>
+                            <BarLabel>{`${200 + idx} -> ${
+                                200 + idx + 1
+                            }`}</BarLabel>
+                        </Bar>
                     );
                 })}
-            </div>
-            <div className="result">
+            </Row>
+            <Result>
                 <div>{!!from && !!to && `${from} ~ ${to + 1}`}</div>
                 <div>sum: {sum.toLocaleString()}</div>
-            </div>
-        </div>
+            </Result>
+
+            <Row asAdvanced>
+                {ADVANCED_EXP_COUPON.map(({ level, required: v }, idx) => {
+                    const isActive =
+                        (!!to && idx >= from - 200 && idx <= to - 200) ||
+                        idx === from - 200 ||
+                        idx === to - 200;
+                    return (
+                        <AdvancedBarWrapper key={level}>
+                            <AdvancedBar isActive={isActive} height={v * 0.001}>
+                                <BarLabel advanced>{`${level} -> ${
+                                    level + 1
+                                }`}</BarLabel>
+                            </AdvancedBar>
+                            <AdvBarTooltip>
+                                {`필요 경험치: ${v.toLocaleString()}`}
+                            </AdvBarTooltip>
+                        </AdvancedBarWrapper>
+                    );
+                })}
+            </Row>
+        </Wrapper>
     );
 };

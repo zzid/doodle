@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import rawData from "../data/advantage_force.json";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -9,6 +9,15 @@ interface RawItem {
     difficulty: "Easy" | "Normal" | "Hard" | "Extreme" | "Chaos" | "All";
 }
 
+const DIFFICULTY_STYLE: Record<RawItem["difficulty"], string> = {
+    Easy: "bg-zinc-500/25 text-zinc-200",
+    Normal: "bg-sky-500/25 text-sky-200",
+    Hard: "bg-rose-500/25 text-rose-200",
+    Extreme: "bg-purple-500/30 text-purple-200",
+    Chaos: "bg-red-500/25 text-red-200",
+    All: "bg-white/10 text-zinc-300",
+};
+
 export const BossAdvantageForce = ({
     selectedForce,
     setSelectedForce,
@@ -16,141 +25,88 @@ export const BossAdvantageForce = ({
     selectedForce?: number;
     setSelectedForce: (force: number) => void;
 }) => {
-    const [collapsed, setCollapsed] = useState(true);
+    const [open, setOpen] = useState(false);
+    const bosses = useMemo(
+        () => [...(rawData as RawItem[])].sort((a, b) => a.min - b.min),
+        []
+    );
+
     return (
         <div>
-            <div className="flex flex-row items-center gap-2"> 
-                <button
-                    className={`px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 ${
-                        collapsed ? "bg-indigo-600" : "bg-indigo-800"
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                className="flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3.5 py-2 text-sm font-semibold text-zinc-200 transition hover:border-indigo-400/50 hover:bg-indigo-500/10 hover:text-indigo-100"
+                aria-expanded={open}
+            >
+                보스별 권장 Force 보기
+                <span
+                    className={`text-xs transition-transform ${
+                        open ? "rotate-180" : ""
                     }`}
-                    onClick={() => setCollapsed(!collapsed)}
                 >
-                    보스 포뻥 선택
-                </button>
-                {/* <button onClick={() => setCollapsed(!collapsed)}>
-                    {collapsed ? (
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="size-6"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                            />
-                        </svg>
-                    ) : (
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                            className="size-6"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M15 12H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                            />
-                        </svg>
-                    )}
-                </button> */}
-            </div>
+                    ▼
+                </span>
+            </button>
 
-            <AnimatePresence>
-                {!collapsed && (
+            <AnimatePresence initial={false}>
+                {open && (
                     <motion.div
-                        key="content"
-                        initial={{
-                            opacity: 0,
-                            // height: 0,
-                            x: 10,
-                        }}
-                        animate={{
-                            opacity: 1,
-                            // height: "auto",
-                            x: 0,
-                        }}
-                        exit={{
-                            opacity: 0,
-                            // height: 0,
-                            x: -10,
-                        }}
-                        transition={{ duration: 0.3 }}
+                        key="boss-list"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
                     >
-                        <div className="grid gap-3 grid-cols-5 gap-4">
-                            {(rawData as RawItem[])
-                                .sort((a, b) => a.min - b.min)
-                                .map((item) => (
-                                    <div
-                                        key={item.name}
-                                        className={`rounded-xl p-4 shadow-md bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 text-white`}
-                                    >
-                                        <div className="text-md font-semibold mb-2 drop-shadow flex flex-row items-center gap-2 justify-between px-3">
-                                            {item.name}&nbsp;
-                                            <div
-                                                className={`text-sm font-normal bg-gradient-to-r rounded-full px-3 py-1 ${
-                                                    item.difficulty === "Easy"
-                                                        ? "from-gray-400 via-gray-400 to-gray-400"
-                                                        : item.difficulty ===
-                                                          "Normal"
-                                                        ? "from-blue-400 via-blue-400 to-blue-400"
-                                                        : item.difficulty ===
-                                                          "Hard"
-                                                        ? "from-red-500 via-red-500 to-red-500"
-                                                        : item.difficulty ===
-                                                          "Extreme"
-                                                        ? "from-purple-500 via-purple-500 to-purple-500"
-                                                        : item.difficulty ===
-                                                          "Chaos"
-                                                        ? "from-zinc-600 via-red-500 to-zinc-600 text-white-700"
-                                                        : item.difficulty ===
-                                                          "All"
-                                                        ? "from-gray-500 via-gray-500 to-gray-500"
-                                                        : "from-purple-500 via-purple-500 to-purple-500"
+                        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-2.5 lg:grid-cols-3">
+                            {bosses.map((item) => (
+                                <div
+                                    key={`${item.name}-${item.difficulty}`}
+                                    className="rounded-xl border border-white/10 bg-white/[0.03] p-3"
+                                >
+                                    <div className="mb-2 flex items-center justify-between gap-2">
+                                        <span className="text-sm font-semibold text-zinc-100">
+                                            {item.name}
+                                        </span>
+                                        <span
+                                            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                                                DIFFICULTY_STYLE[
+                                                    item.difficulty
+                                                ]
+                                            }`}
+                                        >
+                                            {item.difficulty}
+                                        </span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        {(
+                                            [
+                                                ["권장", item.min],
+                                                ["여유", item.max],
+                                            ] as const
+                                        ).map(([label, force]) => (
+                                            <button
+                                                key={label}
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedForce(force);
+                                                    setOpen(false);
+                                                }}
+                                                className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-bold tabular-nums transition ${
+                                                    selectedForce === force
+                                                        ? "bg-indigo-500 text-white"
+                                                        : "bg-white/5 text-zinc-300 hover:bg-indigo-500/20 hover:text-indigo-100"
                                                 }`}
                                             >
-                                                {item.difficulty}
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-3 text-sm">
-                                            <button
-                                                className={`flex-1 px-4 py-2 rounded-lg font-bold transition 
-                                    ${
-                                        selectedForce === item.min
-                                            ? "bg-white text-indigo-600 shadow-lg"
-                                            : "bg-white/20 hover:bg-white/40"
-                                    }`}
-                                                onClick={() => {
-                                                    setSelectedForce(item.min);
-                                                    setCollapsed(true);
-                                                }}
-                                            >
-                                                min {item.min}
+                                                <span className="mr-1 text-[11px] font-medium opacity-70">
+                                                    {label}
+                                                </span>
+                                                {force}
                                             </button>
-                                            <button
-                                                className={`flex-1 px-4 py-2 rounded-lg font-bold transition 
-                                    ${
-                                        selectedForce === item.max
-                                            ? "bg-white text-pink-600 shadow-lg"
-                                            : "bg-white/20 hover:bg-white/40"
-                                    }`}
-                                                onClick={() => {
-                                                    setSelectedForce(item.max);
-                                                    setCollapsed(true);
-                                                }}
-                                            >
-                                                max {item.max}
-                                            </button>
-                                        </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
+                            ))}
                         </div>
                     </motion.div>
                 )}

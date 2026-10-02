@@ -105,6 +105,6 @@ export const getEffectCountForDay = (
     config: CalendarConfig
 ): number | null => {
     const count = getCountForDate(day, config);
-    if (config.effectData.some((e) => e.count === count)) return count;
+    if (config.effectData?.some((e) => e.count === count)) return count;
     return null;
 };
