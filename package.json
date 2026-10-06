@@ -4,8 +4,6 @@
     "private": true,
     "homepage": "https://zzid.github.io/doodle",
     "dependencies": {
-        "@emotion/react": "^11.14.0",
-        "@emotion/styled": "^11.14.1",
         "chart.js": "^4.5.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -51,7 +49,6 @@
         "@types/react": "^18.0.0",
         "@types/react-dom": "^18.0.0",
         "autoprefixer": "^10.4.19",
-        "babel-plugin-styled-components": "^2.1.4",
         "gh-pages": "^6.3.0",
         "postcss": "^8.4.38",
         "typescript": "^5.2.2"

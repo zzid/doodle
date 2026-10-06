@@ -1,0 +1,31 @@
+/*
+ * 캘린더의 "상태에 따라 바뀌는 색"만 담당하는 CSS.
+ *
+ * 캘린더는 colors 객체를 런타임에 바꿔 끼울 수 있어야 해서(심볼 페이지가
+ * 인디고 팔레트로 덮어씀) 색을 Tailwind 클래스로 고정할 수 없다.
+ * 그래서 색은 인라인 style 로 --cal-* 변수를 꽂고, 유틸로 표현할 수 없는
+ * hover/outline 만 여기서 그 변수를 참조한다. 레이아웃·간격은 전부 Tailwind.
+ */
+
+.cal-cell {
+    background: var(--cal-bg);
+    box-shadow: var(--cal-shadow);
+    transition: box-shadow 0.15s, background 0.17s;
+}
+.cal-cell:hover {
+    background: var(--cal-hover-bg);
+    box-shadow: var(--cal-hover-shadow);
+}
+
+.cal-effect-box {
+    background: var(--cal-bg);
+    box-shadow: var(--cal-shadow);
+    outline: var(--cal-outline);
+    outline-offset: var(--cal-outline-offset);
+    transition: box-shadow 0.22s, border 0.16s, background 0.17s,
+        font-weight 0.15s;
+}
+.cal-effect-box:hover,
+.cal-effect-box:focus {
+    box-shadow: var(--cal-hover-shadow);
+}

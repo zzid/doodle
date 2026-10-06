@@ -1,14 +1,48 @@
 // 보스포스 지역
-export const ATHENTIC_AREAS: { name: string; level: number }[] = [
-    { name: "세르니움", level: 260 },
-    { name: "아르크스", level: 265 },
-    { name: "오디움", level: 270 },
-    { name: "도원경", level: 275 },
-    { name: "아르테리아", level: 280 },
-    { name: "카르시온", level: 285 },
-    { name: "탈라하트", level: 290 },
-    { name: "기어드락", level: 295 },
+// tier: 일반 어센틱심볼(6종) / 그랜드 어센틱심볼(2종) — UI 에서 묶어서 보여준다
+export type AuthenticTier = "normal" | "grand";
+
+export const ATHENTIC_AREAS: {
+    name: string;
+    level: number;
+    tier: AuthenticTier;
+    /** 심볼 아이템 아이콘. 그랜드 심볼은 아직 구할 수 없어 폴백 처리된다. */
+    image?: string;
+}[] = [
+    {
+        name: "세르니움",
+        level: 260,
+        tier: "normal",
+        image: "/symbol/cernium.png",
+    },
+    { name: "아르크스", level: 265, tier: "normal", image: "/symbol/arcus.png" },
+    { name: "오디움", level: 270, tier: "normal", image: "/symbol/odium.png" },
+    {
+        name: "도원경",
+        level: 275,
+        tier: "normal",
+        image: "/symbol/dowonkyung.png",
+    },
+    {
+        name: "아르테리아",
+        level: 280,
+        tier: "normal",
+        image: "/symbol/arteria.png",
+    },
+    {
+        name: "카르시온",
+        level: 285,
+        tier: "normal",
+        image: "/symbol/carcion.png",
+    },
+    { name: "탈라하트", level: 290, tier: "grand" },
+    { name: "기어드락", level: 295, tier: "grand" },
 ];
+
+export const AUTHENTIC_TIER_LABEL: Record<AuthenticTier, string> = {
+    normal: "어센틱심볼",
+    grand: "그랜드 어센틱심볼",
+};
 
 // 어센틱 심볼 최대 레벨
 export const AUTHENTIC_MAX_LEVEL = 11;
@@ -45,13 +79,17 @@ export const SYMBOL_PRICE_COEFFICIENTS: Record<
 };
 
 // 아케인 심볼 종류 (6개)
-export const ARCANE_SYMBOLS = [
-    { name: "소멸의 여로", defaultDaily: 20 },
-    { name: "츄츄 아일랜드", defaultDaily: 20 },
-    { name: "레헬른", defaultDaily: 20 },
-    { name: "아르카나", defaultDaily: 20 },
-    { name: "모라스", defaultDaily: 20 },
-    { name: "에스페라", defaultDaily: 20 },
+export const ARCANE_SYMBOLS: {
+    name: string;
+    defaultDaily: number;
+    image?: string;
+}[] = [
+    { name: "소멸의 여로", defaultDaily: 20, image: "/symbol/soul.png" },
+    { name: "츄츄 아일랜드", defaultDaily: 20, image: "/symbol/chuchu.png" },
+    { name: "레헬른", defaultDaily: 20, image: "/symbol/lachelein.png" },
+    { name: "아르카나", defaultDaily: 20, image: "/symbol/arcana.png" },
+    { name: "모라스", defaultDaily: 20, image: "/symbol/morass.png" },
+    { name: "에스페라", defaultDaily: 20, image: "/symbol/esfera.png" },
 ];
 export const ARCANE_WEEKLY_BONUS = 120;
 // Arcane(아케인 심볼) 데이터

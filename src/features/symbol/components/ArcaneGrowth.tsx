@@ -10,7 +10,7 @@ import {
     ARCANE_WEEKLY_BONUS,
 } from "../data";
 import { getAllArcaneLevelMilestones } from "../utils";
-import { GhostButton, NumberInput, Panel, StatTile } from "./ui";
+import { AssetIcon, GhostButton, NumberInput, Panel, StatTile } from "./ui";
 
 type ArcaneInput = { level: number; count: number; daily: number };
 type ArcaneInputs = Record<string, ArcaneInput>;
@@ -100,7 +100,7 @@ function ArcaneSymbolCalendar({
                 const dayEvents = dateMap[date.format("YYYY-MM-DD")] || [];
                 return (
                     <div className="flex h-full flex-col">
-                        <div className="mb-1 text-sm font-semibold text-zinc-100">
+                        <div className="mb-1 text-sm font-semibold text-content">
                             {date.date()}
                         </div>
                         <div className="flex flex-1 flex-col gap-1">
@@ -109,8 +109,8 @@ function ArcaneSymbolCalendar({
                                     key={`${e.symbol}-${e.level}-${idx}`}
                                     className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold ${
                                         e.isMax
-                                            ? "bg-amber-400 text-zinc-900"
-                                            : "bg-indigo-500/25 text-indigo-100"
+                                            ? "bg-amber-400 text-bg"
+                                            : "bg-accent/25 text-accent"
                                     }`}
                                 >
                                     {e.symbol.slice(0, 2)} Lv.{e.level}
@@ -161,7 +161,7 @@ function ArcaneSymbolCard({
     milestones,
     onChange,
 }: {
-    symbol: { name: string; defaultDaily: number };
+    symbol: { name: string; defaultDaily: number; image?: string };
     value: ArcaneInput;
     extraDaily: number;
     targetLevel: number;
@@ -182,21 +182,22 @@ function ArcaneSymbolCard({
         hint?: React.ReactNode
     ) => (
         <div className="flex items-center gap-2">
-            <span className="w-[42px] shrink-0 text-[11px] font-medium text-zinc-400 sm:w-[52px] sm:text-xs">
+            <span className="w-[42px] shrink-0 text-[11px] font-medium text-muted sm:w-[52px] sm:text-xs">
                 {label}
             </span>
             {input}
-            {hint && <span className="text-[11px] text-zinc-500">{hint}</span>}
+            {hint && <span className="text-[11px] text-faint">{hint}</span>}
         </div>
     );
 
     return (
-        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5 transition hover:border-indigo-400/40 sm:p-3.5">
-            <div className="mb-2.5 flex items-center justify-between">
-                <span className="text-sm font-bold text-indigo-300">
+        <div className="rounded-xl border border-line/10 bg-line/[0.03] p-2.5 transition hover:border-accent/40 sm:p-3.5">
+            <div className="mb-2.5 flex items-center gap-1.5">
+                <AssetIcon src={symbol.image} name={symbol.name} size={24} />
+                <span className="min-w-0 flex-1 truncate text-sm font-bold text-accent">
                     {symbol.name}
                 </span>
-                <span className="rounded-full bg-indigo-500/15 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-indigo-200">
+                <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-accent">
                     Lv.{level}
                 </span>
             </div>
@@ -251,16 +252,16 @@ function ArcaneSymbolCard({
                     extraDaily > 0 ? `+${extraDaily}` : undefined
                 )}
             </div>
-            <div className="mt-3 space-y-1 border-t border-white/5 pt-2.5 text-[11px] text-zinc-400">
+            <div className="mt-3 space-y-1 border-t border-line/5 pt-2.5 text-[11px] text-muted">
                 <div className="flex justify-between">
                     <span>Lv.{targetLevel}까지 남은 심볼</span>
-                    <b className="tabular-nums text-amber-300">
+                    <b className="tabular-nums text-warn">
                         {remaining.toLocaleString()}개
                     </b>
                 </div>
                 <div className="flex justify-between">
                     <span>예상 도달일</span>
-                    <b className="tabular-nums text-indigo-200">
+                    <b className="tabular-nums text-accent">
                         {level >= targetLevel
                             ? "달성"
                             : target
@@ -268,7 +269,7 @@ function ArcaneSymbolCard({
                             : "-"}
                     </b>
                 </div>
-                <div className="flex justify-between text-zinc-500">
+                <div className="flex justify-between text-faint">
                     <span>실 일일 획득</span>
                     <span className="tabular-nums">{effectiveDaily}개</span>
                 </div>
@@ -282,7 +283,7 @@ function ArcaneLevelTableCompact() {
         <div className="overflow-x-auto">
             <table className="w-full min-w-[320px] text-xs">
                 <thead>
-                    <tr className="border-b border-white/10 text-[11px] uppercase tracking-wide text-zinc-500">
+                    <tr className="border-b border-line/10 text-[11px] uppercase tracking-wide text-faint">
                         <th className="px-2 py-1.5 text-center font-semibold">
                             Lv
                         </th>
@@ -298,7 +299,7 @@ function ArcaneLevelTableCompact() {
                     {ARCANE_LEVEL_TABLE.map((row, idx) => (
                         <tr
                             key={row.from}
-                            className="border-b border-white/5 text-zinc-300"
+                            className="border-b border-line/5 text-muted"
                         >
                             <td className="px-2 py-1.5 text-center tabular-nums">
                                 {row.from} → {row.to}
@@ -306,7 +307,7 @@ function ArcaneLevelTableCompact() {
                             <td className="px-2 py-1.5 text-right font-mono tabular-nums">
                                 {row.need}
                             </td>
-                            <td className="px-2 py-1.5 text-right font-mono tabular-nums text-zinc-400">
+                            <td className="px-2 py-1.5 text-right font-mono tabular-nums text-muted">
                                 {ARCANE_LEVEL_TABLE.slice(0, idx + 1).reduce(
                                     (acc, cur) => acc + cur.need,
                                     0
@@ -397,7 +398,7 @@ export const ArcaneGrowth = () => {
                     <div>
                         <label
                             htmlFor="target-level"
-                            className="mb-1 block text-xs font-medium text-zinc-400"
+                            className="mb-1 block text-xs font-medium text-muted"
                         >
                             목표 레벨
                         </label>
@@ -407,7 +408,7 @@ export const ArcaneGrowth = () => {
                             onChange={(e) =>
                                 setTargetLevel(parseInt(e.target.value))
                             }
-                            className="rounded-lg border border-white/15 bg-zinc-800/80 px-3 py-1.5 text-sm text-zinc-100 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30"
+                            className="rounded-lg border border-line/15 bg-raised/80 px-3 py-1.5 text-sm text-content outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
                         >
                             {Array.from({ length: 19 }, (_, i) => i + 2).map(
                                 (lv) => (
@@ -422,7 +423,7 @@ export const ArcaneGrowth = () => {
                     <div>
                         <label
                             htmlFor="extra-daily"
-                            className="mb-1 block text-xs font-medium text-zinc-400"
+                            className="mb-1 block text-xs font-medium text-muted"
                         >
                             일일 추가 획득 (이벤트/링크 등)
                         </label>
@@ -439,7 +440,7 @@ export const ArcaneGrowth = () => {
                             }}
                         />
                     </div>
-                    <p className="text-[11px] text-zinc-500">
+                    <p className="text-[11px] text-faint">
                         목요일마다 주간 보너스 +{ARCANE_WEEKLY_BONUS}개가 자동
                         반영돼요.
                     </p>
@@ -492,7 +493,7 @@ export const ArcaneGrowth = () => {
             </Panel>
 
             <Panel className="p-3 sm:p-5">
-                <h3 className="mb-3 text-sm font-bold text-zinc-100">
+                <h3 className="mb-3 text-sm font-bold text-content">
                     레벨 도달 달력
                 </h3>
                 <ArcaneSymbolCalendar milestonesBySymbol={milestonesBySymbol} />
@@ -500,7 +501,7 @@ export const ArcaneGrowth = () => {
 
             <Panel className="p-3 sm:p-5">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-zinc-100">
+                    <h3 className="text-sm font-bold text-content">
                         아케인 심볼 레벨업 필요량
                     </h3>
                     <GhostButton onClick={() => setShowTable((v) => !v)}>

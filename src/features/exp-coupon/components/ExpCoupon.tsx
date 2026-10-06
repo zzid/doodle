@@ -1,102 +1,18 @@
+"use client";
+
 import React, { useState } from "react";
-import styled from "@emotion/styled";
 import { NORMAL_EXP_COUPON, ADVANCED_EXP_COUPON } from "../data";
-import { css } from "@emotion/react";
 
-const AdvancedBarWrapper = styled.div`
-    position: relative;
-    display: inline-block;
-`;
+/**
+ * 경험치 쿠폰 구간 비교.
+ * 막대 높이는 데이터에 따라 달라지므로 height 만 인라인 스타일로 두고,
+ * 나머지 표현은 전부 Tailwind 토큰 클래스로 처리한다.
+ */
 
-const AdvBarTooltip = styled.div`
-    visibility: hidden;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 4px 8px;
-    position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    font-size: 12px;
-    pointer-events: none;
-    transition: visibility 0.1s, opacity 0.1s;
-    opacity: 0;
-
-    ${AdvancedBarWrapper}:hover & {
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-`;
-const Bar = styled.div<{ isActive: boolean; height: number }>`
-    width: 10px;
-    background-color: ${({ isActive }) => (isActive ? "skyblue" : "#a0a0a0")};
-    position: relative;
-    font-size: 5px;
-    cursor: pointer;
-    transition: background-color 0.1s;
-    height: ${({ height }) => height}px;
-    &:hover {
-        background-color: #00ffd5 !important;
-    }
-`;
-
-const AdvancedBar = styled.div<{ isActive: boolean; height: number }>`
-    color: orange;
-    font-weight: bold;
-    font-size: 10px;
-    width: 20px;
-    background-color: ${({ isActive }) => (isActive ? "skyblue" : "#a0a0a0")};
-    position: relative;
-    font-size: 5px;
-    cursor: pointer;
-    transition: background-color 0.1s;
-    height: ${({ height }) => height}px;
-    &:hover {
-        background-color: #00ffd5 !important;
-    }
-`;
-
-const Result = styled.div`
-    position: absolute;
-    top: 20%;
-    left: 50%;
-    width: 200px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    transform: translate(-50%, 0);
-`;
-
-const Wrapper = styled.div`
-    width: 100vw;
-    min-height: 100vh;
-    position: relative;
-`;
-
-const Row = styled.div<{ asAdvanced?: boolean }>`
-    margin: 50px auto;
-    width: 80%;
-    height: 80%;
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-    align-items: flex-end;
-    ${(props) => props.asAdvanced && "flex-direction: row;"}
-`;
-
-const BarLabel = styled.div<{ advanced?: boolean }>`
-    color: white;
-    font-weight: bold;
-    font-size: ${({ advanced }) => (advanced ? "10px" : "6px")};
-    position: absolute;
-    bottom: -30px;
-    left: -2px;
-`;
+const barClass = (isActive: boolean) =>
+    `relative cursor-pointer transition-colors duration-fast ease-out hover:bg-accent ${
+        isActive ? "bg-accent-strong" : "bg-faint"
+    }`;
 
 export const ExpCoupon = () => {
     const [from, setFrom] = useState<number>(0);
@@ -119,7 +35,7 @@ export const ExpCoupon = () => {
             setFrom(idx + 200);
             setSum(
                 NORMAL_EXP_COUPON.slice(idx, from - 200).reduce(
-                    (sum, v) => sum + v,
+                    (acc, v) => acc + v,
                     0
                 )
             );
@@ -128,61 +44,110 @@ export const ExpCoupon = () => {
 
         setSum(
             NORMAL_EXP_COUPON.slice(from - 200, idx).reduce(
-                (sum, v) => sum + v,
+                (acc, v) => acc + v,
                 0
             )
         );
         return setTo(idx + 200);
     };
 
+    const isActiveAt = (idx: number) =>
+        (!!to && idx >= from - 200 && idx <= to - 200) ||
+        idx === from - 200 ||
+        idx === to - 200;
+
     return (
-        <Wrapper>
-            <Row>
-                {NORMAL_EXP_COUPON.slice(0, 50).map((v, idx) => {
-                    const isActive =
-                        (!!to && idx >= from - 200 && idx <= to - 200) ||
-                        idx === from - 200 ||
-                        idx === to - 200;
-                    return (
-                        <Bar
+        <div className="relative mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
+            <header className="mb-6">
+                <h1 className="text-xl font-extrabold tracking-tight text-content sm:text-2xl">
+                    경험치 쿠폰 계산기
+                </h1>
+                <p className="mt-1 text-sm text-muted">
+                    막대를 두 번 눌러 구간을 선택하면 필요 경험치 합계를
+                    보여줘요.
+                </p>
+            </header>
+
+            {/* 선택 결과 */}
+            <div className="mb-6 flex flex-wrap items-baseline gap-x-4 gap-y-1 rounded-xl border border-line/10 bg-surface/60 px-4 py-3">
+                <span className="text-sm text-muted">
+                    구간{" "}
+                    <b className="tabular-nums text-content">
+                        {!!from && !!to ? `${from} ~ ${to + 1}` : "—"}
+                    </b>
+                </span>
+                <span className="text-sm text-muted">
+                    합계{" "}
+                    <b className="tabular-nums text-accent">
+                        {sum.toLocaleString()}
+                    </b>
+                </span>
+            </div>
+
+            {/* 일반 쿠폰 (200~249) */}
+            <section className="mb-12">
+                <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-faint">
+                    일반 경험치 쿠폰
+                </h2>
+                <div className="flex flex-row items-end gap-[5px] overflow-x-auto pb-10">
+                    {NORMAL_EXP_COUPON.slice(0, 50).map((v, idx) => (
+                        <div
                             key={idx}
-                            isActive={isActive}
-                            height={v * 0.05}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`${200 + idx} → ${201 + idx} 구간`}
                             onClick={() => onClick(idx)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    onClick(idx);
+                                }
+                            }}
+                            style={{ height: v * 0.05 }}
+                            className={`${barClass(
+                                isActiveAt(idx)
+                            )} w-2.5 shrink-0 text-[5px]`}
                         >
                             {v}
-                            <BarLabel>{`${200 + idx} -> ${
-                                200 + idx + 1
-                            }`}</BarLabel>
-                        </Bar>
-                    );
-                })}
-            </Row>
-            <Result>
-                <div>{!!from && !!to && `${from} ~ ${to + 1}`}</div>
-                <div>sum: {sum.toLocaleString()}</div>
-            </Result>
+                            <span className="absolute -bottom-[30px] -left-0.5 text-[6px] font-bold text-content">
+                                {`${200 + idx} -> ${201 + idx}`}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </section>
 
-            <Row asAdvanced>
-                {ADVANCED_EXP_COUPON.map(({ level, required: v }, idx) => {
-                    const isActive =
-                        (!!to && idx >= from - 200 && idx <= to - 200) ||
-                        idx === from - 200 ||
-                        idx === to - 200;
-                    return (
-                        <AdvancedBarWrapper key={level}>
-                            <AdvancedBar isActive={isActive} height={v * 0.001}>
-                                <BarLabel advanced>{`${level} -> ${
-                                    level + 1
-                                }`}</BarLabel>
-                            </AdvancedBar>
-                            <AdvBarTooltip>
+            {/* 상급 쿠폰 */}
+            <section>
+                <h2 className="mb-2 text-xs font-bold uppercase tracking-wider text-faint">
+                    상급 경험치 쿠폰
+                </h2>
+                <div className="flex flex-row items-end gap-[5px] overflow-x-auto pb-10">
+                    {ADVANCED_EXP_COUPON.map(({ level, required: v }, idx) => (
+                        <div
+                            key={level}
+                            className="group relative inline-block shrink-0"
+                        >
+                            <div
+                                style={{ height: v * 0.001 }}
+                                className={`${barClass(
+                                    isActiveAt(idx)
+                                )} w-5 text-[5px]`}
+                            >
+                                <span className="absolute -bottom-[30px] -left-0.5 text-[10px] font-bold text-content">
+                                    {`${level} -> ${level + 1}`}
+                                </span>
+                            </div>
+                            <span
+                                role="tooltip"
+                                className="pointer-events-none absolute bottom-[125%] left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/80 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-fast group-hover:opacity-100"
+                            >
                                 {`필요 경험치: ${v.toLocaleString()}`}
-                            </AdvBarTooltip>
-                        </AdvancedBarWrapper>
-                    );
-                })}
-            </Row>
-        </Wrapper>
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </section>
+        </div>
     );
 };

@@ -4,18 +4,52 @@
 
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
+/*
+ * 디자인 토큰 — 사이트 전체의 단일 소스.
+ *
+ * 값은 "R G B" 채널로 두어 Tailwind 의 알파 수식어(bg-surface/70)와
+ * CSS 의 rgb(var(--c-x) / 0.5) 양쪽에서 모두 쓸 수 있게 한다.
+ * Tailwind 쪽 매핑은 tailwind.config.js, JS 쪽 접근자는 src/config/theme.ts.
+ *
+ * 앱 셸이 항상 다크이므로 라이트 팔레트는 두지 않는다.
+ */
 :root {
-    /* 네이티브 컨트롤(select/input/스크롤바)도 다크로 렌더링 */
     color-scheme: dark;
+
+    /* 배경 */
+    --c-bg: 22 24 29; /* 셸 바탕 */
+    --c-surface: 24 24 27; /* 패널 (zinc-900) */
+    --c-raised: 39 39 42; /* 한 단 올라온 요소 (zinc-800) */
+
+    /* 텍스트 */
+    --c-text: 244 244 245; /* zinc-100 */
+    --c-muted: 161 161 170; /* zinc-400 */
+    --c-faint: 113 113 122; /* zinc-500 */
+
+    /* 강조 */
+    --c-accent: 129 140 248; /* indigo-400 */
+    --c-accent-strong: 99 102 241; /* indigo-500 */
+
+    /* 의미색 */
+    --c-warn: 252 211 77; /* amber-300 */
+    --c-good: 110 231 183; /* emerald-300 */
+    --c-danger: 253 164 175; /* rose-300 */
+
+    /* 선/면 */
+    --c-line: 255 255 255;
+
+    /* 모션 */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-fast: 140ms;
+    --dur-base: 220ms;
 }
 
 body {
     margin: 0;
-    color: #e2e8f0;
-    font-family: "Pretendard";
-    /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
-        "Helvetica Neue", sans-serif; */
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    color: rgb(var(--c-text));
+    background-color: rgb(var(--c-bg));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -25,3 +59,60 @@ code {
         monospace;
 }
 
+/* 셸: 바탕 + 시그니처 그리드 배경 */
+.app-shell {
+    min-height: 100vh;
+    position: relative;
+    background-color: rgb(var(--c-bg));
+    background-image: repeating-linear-gradient(
+            to right,
+            rgb(var(--c-line) / 0) 0,
+            rgb(var(--c-line) / 0.06) 1px,
+            transparent 2px,
+            transparent 20px
+        ),
+        repeating-linear-gradient(
+            to right,
+            rgb(var(--c-line) / 0) 0,
+            rgb(var(--c-line) / 0.14) 1px,
+            transparent 1px,
+            transparent 100px
+        ),
+        repeating-linear-gradient(
+            to bottom,
+            rgb(var(--c-line) / 0) 0,
+            rgb(var(--c-line) / 0.06) 1px,
+            transparent 2px,
+            transparent 20px
+        ),
+        repeating-linear-gradient(
+            to bottom,
+            rgb(var(--c-line) / 0) 0,
+            rgb(var(--c-line) / 0.14) 1px,
+            transparent 1px,
+            transparent 100px
+        );
+    background-size: 40px 40px;
+}
+
+/* 모션을 줄이도록 설정한 사용자에게는 전환을 사실상 제거 */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* 숫자 입력의 네이티브 스피너 제거 — 좁은 입력칸에서 자릿수가 잘리는 걸 막는다 */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.no-spinner {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}

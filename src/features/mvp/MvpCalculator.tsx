@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Calculator } from "./styles";
+import "./mvp.css";
 import { calculate, defaults } from "./calculate";
 export default function MvpCalculator() {
     const [values, setValues] = useState(defaults);
     const { results, mainError, flgaError, negative } = calculate(values);
-    return <Calculator lang="ko"><main className="content"><Link href="/" className="back">← Doodle 홈</Link>
+    return <div className="mvp-calc" lang="ko"><main className="content"><Link href="/" className="back">← Doodle 홈</Link>
     <header><div className="eyebrow">MVP · RECOVERY CALCULATOR</div><h1>얼마나 회수할 수 있을까?</h1><p>아이템 판매로 돌려받는 금액과 실제 부담 비용을 계산해 보세요.</p></header>
     <div className="budget"><span>3개월 총 실적 · 캐시 충전 기준</span><strong>2,500,000원</strong></div>
     <div className="cards">
@@ -52,5 +52,5 @@ export default function MvpCalculator() {
     </section>
     </div>
     <footer>입력값을 바꾸면 즉시 계산됩니다. 금액은 원 단위로 반올림하며 계산에는 반올림 전 값을 사용합니다. </footer>
-    </main></Calculator>;
+    </main></div>;
 }

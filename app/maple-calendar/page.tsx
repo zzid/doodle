@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import MapleCalendarPage from '@/pages/MapleCalendarPage';
+import MapleCalendarPage from '@/views/MapleCalendarPage';
 
 export default function Page() {
   return <MapleCalendarPage />;

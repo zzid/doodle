@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { AssetIcon } from "./ui";
 import rawData from "../data/advantage_force.json";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -6,6 +7,8 @@ interface RawItem {
     name: string;
     min: number;
     max: number;
+    /** 스프라이트를 구할 수 있는 보스만 존재. 없으면 이니셜 폴백. */
+    image?: string;
     difficulty:
         | "Story"
         | "Easy"
@@ -18,12 +21,12 @@ interface RawItem {
 
 const DIFFICULTY_STYLE: Record<RawItem["difficulty"], string> = {
     Story: "bg-teal-500/25 text-teal-200",
-    Easy: "bg-zinc-500/25 text-zinc-200",
+    Easy: "bg-zinc-500/25 text-content",
     Normal: "bg-sky-500/25 text-sky-200",
     Hard: "bg-rose-500/25 text-rose-200",
     Extreme: "bg-purple-500/30 text-purple-200",
     Chaos: "bg-red-500/25 text-red-200",
-    All: "bg-white/10 text-zinc-300",
+    All: "bg-line/10 text-muted",
 };
 
 export const BossAdvantageForce = ({
@@ -47,7 +50,7 @@ export const BossAdvantageForce = ({
             <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3.5 py-2 text-sm font-semibold text-zinc-200 transition hover:border-indigo-400/50 hover:bg-indigo-500/10 hover:text-indigo-100"
+                className="flex items-center gap-2 rounded-lg border border-line/15 bg-line/5 px-3.5 py-2 text-sm font-semibold text-content transition hover:border-accent/50 hover:bg-accent/10 hover:text-accent"
                 aria-expanded={open}
             >
                 보스별 권장 Force 보기
@@ -73,10 +76,11 @@ export const BossAdvantageForce = ({
                             {bosses.map((item) => (
                                 <div
                                     key={`${item.name}-${item.difficulty}`}
-                                    className="rounded-xl border border-white/10 bg-white/[0.03] p-3"
+                                    className="rounded-xl border border-line/10 bg-line/[0.03] p-3"
                                 >
-                                    <div className="mb-2 flex items-center justify-between gap-2">
-                                        <span className="text-sm font-semibold text-zinc-100">
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <AssetIcon src={item.image} name={item.name} size={36} />
+                                        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-content">
                                             {item.name}
                                         </span>
                                         <span
@@ -105,8 +109,8 @@ export const BossAdvantageForce = ({
                                                 }}
                                                 className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-bold tabular-nums transition ${
                                                     selectedForce === force
-                                                        ? "bg-indigo-500 text-white"
-                                                        : "bg-white/5 text-zinc-300 hover:bg-indigo-500/20 hover:text-indigo-100"
+                                                        ? "bg-accent-strong text-white"
+                                                        : "bg-line/5 text-muted hover:bg-accent/20 hover:text-accent"
                                                 }`}
                                             >
                                                 <span className="mr-1 text-[11px] font-medium opacity-70">

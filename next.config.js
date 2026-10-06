@@ -10,9 +10,6 @@ const nextConfig = {
     // images: {
     //   unoptimized: true,
     // },
-    compiler: {
-        emotion: true,
-    },
     webpack: (config) => {
         config.resolve.alias = {
             ...config.resolve.alias,
