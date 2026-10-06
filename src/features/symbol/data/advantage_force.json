@@ -100,5 +100,47 @@
         "difficulty": "All",
         "min": 700,
         "max": 750
+    },
+    {
+        "name": "찬란한 흉성",
+        "difficulty": "Normal",
+        "min": 400,
+        "max": 450
+    },
+    {
+        "name": "찬란한 흉성",
+        "difficulty": "Hard",
+        "min": 550,
+        "max": 600
+    },
+    {
+        "name": "벨로나",
+        "difficulty": "Story",
+        "min": 400,
+        "max": 450
+    },
+    {
+        "name": "벨로나",
+        "difficulty": "Easy",
+        "min": 400,
+        "max": 450
+    },
+    {
+        "name": "벨로나",
+        "difficulty": "Normal",
+        "min": 450,
+        "max": 500
+    },
+    {
+        "name": "벨로나",
+        "difficulty": "Hard",
+        "min": 550,
+        "max": 600
+    },
+    {
+        "name": "유피테르",
+        "difficulty": "All",
+        "min": 810,
+        "max": 860
     }
 ]

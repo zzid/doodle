@@ -7,10 +7,19 @@ export const ATHENTIC_AREAS: { name: string; level: number }[] = [
     { name: "아르테리아", level: 280 },
     { name: "카르시온", level: 285 },
     { name: "탈라하트", level: 290 },
+    { name: "기어드락", level: 295 },
 ];
 
 // 어센틱 심볼 최대 레벨
 export const AUTHENTIC_MAX_LEVEL = 11;
+
+/**
+ * 강화 비용(메소) 데이터가 아직 없는 지역.
+ * Force 계산에는 포함하되, 비용은 "미확인"으로 따로 표기한다.
+ * 가격표를 확보하면 sorted_price_with_accumulated_only.json 에 추가하고
+ * 이 목록에서 빼면 된다.
+ */
+export const AREAS_WITHOUT_PRICE_DATA: string[] = ["기어드락"];
 
 // 아케인 심볼 종류 (6개)
 export const ARCANE_SYMBOLS = [

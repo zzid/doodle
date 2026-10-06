@@ -2,7 +2,11 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import rawData from "../data/sorted_price_with_accumulated_only.json";
 import { formatPrice } from "@/utils";
-import { ATHENTIC_AREAS, AUTHENTIC_MAX_LEVEL } from "../data";
+import {
+    AREAS_WITHOUT_PRICE_DATA,
+    ATHENTIC_AREAS,
+    AUTHENTIC_MAX_LEVEL,
+} from "../data";
 import {
     accumulatedForceOfLevel,
     parseUpgrades,
@@ -137,6 +141,7 @@ export const BossForceCalc = () => {
                 ownedLevels,
                 targetForce: Number.MAX_SAFE_INTEGER,
                 upgrades: ALL_UPGRADES,
+                areasWithoutPrice: AREAS_WITHOUT_PRICE_DATA,
             }).maxForce,
         [includedAreas, ownedLevels]
     );
@@ -148,6 +153,7 @@ export const BossForceCalc = () => {
             ownedLevels,
             targetForce: selectedForce,
             upgrades: ALL_UPGRADES,
+            areasWithoutPrice: AREAS_WITHOUT_PRICE_DATA,
         });
     }, [selectedForce, includedAreas, ownedLevels]);
 
@@ -220,6 +226,13 @@ export const BossForceCalc = () => {
                                     <span className="mt-0.5 block text-[10px] font-normal opacity-70">
                                         Lv.{level}+
                                     </span>
+                                    {AREAS_WITHOUT_PRICE_DATA.includes(
+                                        name
+                                    ) && (
+                                        <span className="mt-0.5 block text-[10px] font-normal text-amber-300/80">
+                                            비용 미확인
+                                        </span>
+                                    )}
                                 </button>
                             );
                         })}
@@ -426,12 +439,27 @@ export const BossForceCalc = () => {
                             </p>
                         ) : null}
 
+                        {plan.costIncomplete && (
+                            <p className="mt-3 rounded-xl border border-amber-400/30 bg-amber-500/10 px-3 py-2.5 text-xs font-medium text-amber-200">
+                                기어드락 심볼의 강화 비용 데이터가 아직 없어서,
+                                위 금액에는 기어드락 강화 {plan.unpricedSteps}회
+                                분이 빠져 있어요. Force 계산에는 정상
+                                포함됩니다.
+                            </p>
+                        )}
+
                         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-2.5">
                             <StatTile
                                 label="필요 비용"
-                                value={formatPrice(plan.totalCost)}
+                                value={`${formatPrice(plan.totalCost)}${
+                                    plan.costIncomplete ? " +" : ""
+                                }`}
                                 tone="warn"
-                                sub={`강화 ${plan.steps.length}회`}
+                                sub={
+                                    plan.costIncomplete
+                                        ? `강화 ${plan.steps.length}회 중 ${plan.unpricedSteps}회 비용 미확인`
+                                        : `강화 ${plan.steps.length}회`
+                                }
                             />
                             <StatTile
                                 label="현재 Force"
@@ -487,9 +515,13 @@ export const BossForceCalc = () => {
                                                 )}
                                             </div>
                                             <div className="mt-1 text-[10px] text-zinc-500 sm:text-[11px]">
-                                                {grew
-                                                    ? formatPrice(cost)
-                                                    : "투자 없음"}
+                                                {!grew
+                                                    ? "투자 없음"
+                                                    : AREAS_WITHOUT_PRICE_DATA.includes(
+                                                          name
+                                                      )
+                                                    ? "비용 미확인"
+                                                    : formatPrice(cost)}
                                             </div>
                                         </div>
                                     );
@@ -586,9 +618,12 @@ export const BossForceCalc = () => {
                                                                             </b>
                                                                         </td>
                                                                         <td className="px-1.5 py-1.5 text-right tabular-nums text-amber-300/90">
-                                                                            {formatPrice(
-                                                                                s.price
-                                                                            )}
+                                                                            {s.price ===
+                                                                            null
+                                                                                ? "미확인"
+                                                                                : formatPrice(
+                                                                                      s.price
+                                                                                  )}
                                                                         </td>
                                                                         <td className="px-1.5 py-1.5 text-right tabular-nums text-zinc-400">
                                                                             {acc}

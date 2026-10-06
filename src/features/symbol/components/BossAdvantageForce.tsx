@@ -6,10 +6,18 @@ interface RawItem {
     name: string;
     min: number;
     max: number;
-    difficulty: "Easy" | "Normal" | "Hard" | "Extreme" | "Chaos" | "All";
+    difficulty:
+        | "Story"
+        | "Easy"
+        | "Normal"
+        | "Hard"
+        | "Extreme"
+        | "Chaos"
+        | "All";
 }
 
 const DIFFICULTY_STYLE: Record<RawItem["difficulty"], string> = {
+    Story: "bg-teal-500/25 text-teal-200",
     Easy: "bg-zinc-500/25 text-zinc-200",
     Normal: "bg-sky-500/25 text-sky-200",
     Hard: "bg-rose-500/25 text-rose-200",
@@ -27,7 +35,10 @@ export const BossAdvantageForce = ({
 }) => {
     const [open, setOpen] = useState(false);
     const bosses = useMemo(
-        () => [...(rawData as RawItem[])].sort((a, b) => a.min - b.min),
+        () =>
+            [...(rawData as RawItem[])].sort(
+                (a, b) => a.min - b.min || a.max - b.max
+            ),
         []
     );
 
