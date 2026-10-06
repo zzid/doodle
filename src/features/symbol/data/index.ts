@@ -16,10 +16,33 @@ export const AUTHENTIC_MAX_LEVEL = 11;
 /**
  * 강화 비용(메소) 데이터가 아직 없는 지역.
  * Force 계산에는 포함하되, 비용은 "미확인"으로 따로 표기한다.
- * 가격표를 확보하면 sorted_price_with_accumulated_only.json 에 추가하고
- * 이 목록에서 빼면 된다.
+ * 신규 지역이 가격표보다 먼저 나오면 여기에 넣고, 가격을 확보하면
+ * sorted_price_with_accumulated_only.json 에 추가한 뒤 다시 빼면 된다.
  */
-export const AREAS_WITHOUT_PRICE_DATA: string[] = ["기어드락"];
+export const AREAS_WITHOUT_PRICE_DATA: string[] = [];
+
+/**
+ * 어센틱심볼 n레벨 → (n+1)레벨 강화 비용 공식 (나무위키 어센틱포스 성장표).
+ *
+ *   비용 = floor(-5.4n³ + A·n² + B·n) × 100,000
+ *
+ * 일반 심볼은 세르니움부터 지역마다 A +16.2 / B +36,
+ * 그랜드 심볼(탈라하트~)은 별도 계열로 지역마다 A +81 / B +180 씩 증가한다.
+ * (현재 JSON 80건 전부 이 공식과 정확히 일치)
+ */
+export const SYMBOL_PRICE_COEFFICIENTS: Record<
+    string,
+    { a: number; b: number }
+> = {
+    세르니움: { a: 106.8, b: 264 },
+    아르크스: { a: 123, b: 300 },
+    오디움: { a: 139.2, b: 336 },
+    도원경: { a: 155.4, b: 372 },
+    아르테리아: { a: 171.6, b: 408 },
+    카르시온: { a: 187.8, b: 444 },
+    탈라하트: { a: 346.2, b: 796 },
+    기어드락: { a: 427.2, b: 976 },
+};
 
 // 아케인 심볼 종류 (6개)
 export const ARCANE_SYMBOLS = [
