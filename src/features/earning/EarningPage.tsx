@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Eye, EyeOff, Flame, LogOut } from "lucide-react";
+import { Check, Eye, EyeOff, Flame, LogOut, Plus } from "lucide-react";
 import { GhostButton, Panel, PrimaryButton, StatTile } from "@/features/symbol/components/ui";
 import { MoneyInput, TimeSelect } from "@/features/overtime/inputs";
 import { useOvertimeStore } from "@/features/overtime/store";
@@ -18,10 +18,10 @@ import {
     fmtWon,
     overtimeStatus,
 } from "./calc";
-import { Odometer } from "./Odometer";
+import { LiveOdometer, useFrameValue } from "./Odometer";
 import { useNow } from "./useNow";
 import { MiniWindowButton, MiniWindowPortal, useMiniWindow } from "./MiniWindow";
-import { useEarningStore } from "./store";
+import { type EarningState, useEarningStore } from "./store";
 
 // 흐림 반경은 글자 크기에 비례(em) — 큰 숫자도 읽히지 않게
 const BLUR = "blur-[0.45em] select-none";
@@ -45,32 +45,56 @@ interface View {
     ot: OvertimeStatus | null;
     phase: ViewPhase;
     total: number;
+    totalExact: number;
     /** 화면이 보여주는 근무일 (자정을 넘긴 초과근무면 어제) */
     workDate: string;
 }
 
-function useView(now: Date): View {
-    const { start, lunch, overtime } = useEarningStore();
-    const hourly = useHourly();
+type Settings = Pick<EarningState, "start" | "lunch" | "overtime">;
+
+/** 화면 상태 계산 (순수 함수 — 매 프레임 금액 계산에도 쓴다) */
+function computeView(now: Date, s: Settings, hourly: number): View {
     const today = ymd(now);
     const yesterday = ymd(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
     // 자정을 넘겨 계속 초과근무 중이면 어제 근무일을 이어서 보여준다
-    const carry = !!overtime && !overtime.endedAt && overtime.date === yesterday;
+    const carry = !!s.overtime && !s.overtime.endedAt && s.overtime.date === yesterday;
     const workDate = carry ? yesterday : today;
-    const st = dayStatus(carry ? new Date(`${yesterday}T23:59:59`) : now, start, lunch || undefined, hourly);
-    const ot = overtime && overtime.date === workDate ? overtimeStatus(now, overtime, st.endMin, hourly) : null;
+    const st = dayStatus(carry ? new Date(`${yesterday}T23:59:59`) : now, s.start, s.lunch || undefined, hourly);
+    const ot = s.overtime && s.overtime.date === workDate ? overtimeStatus(now, s.overtime, st.endMin, hourly) : null;
     return {
         st,
         ot,
         phase: ot?.active ? "overtime" : st.phase,
         total: st.earned + (ot?.earned ?? 0),
+        totalExact: st.earnedExact + (ot?.earnedExact ?? 0),
         workDate,
     };
 }
 
+const hourlyOf = (s: Pick<EarningState, "wageMode" | "hourlyWage" | "salary">) =>
+    s.wageMode === "salary" ? s.salary / 12 / MONTHLY_BASE_HOURS : s.hourlyWage;
+
+function useView(now: Date): View {
+    const s = useEarningStore();
+    return computeView(now, s, hourlyOf(s));
+}
+
+/**
+ * 매 프레임 갱신되는 연속 금액. 이 컴포넌트만 다시 그려지도록 분리했다.
+ * 상태는 스토어에서 직접 읽어 렌더 사이클과 무관하게 최신값을 쓴다.
+ */
+function LiveAmount({ win }: { win?: Window | null }) {
+    const value = useFrameValue(() => {
+        const s = useEarningStore.getState();
+        const v = computeView(new Date(), s, hourlyOf(s));
+        // 오르는 중일 때만 소수까지 — 멈춰 있을 땐(출근 전·점심·퇴근) 바퀴가 숫자 사이에 걸리지 않게 정수로
+        return v.phase === "working" || v.phase === "overtime" ? v.totalExact : Math.floor(v.totalExact);
+    }, win);
+    return <LiveOdometer value={value} />;
+}
+
 function useHourly() {
-    const { wageMode, hourlyWage, salary } = useEarningStore();
-    return wageMode === "salary" ? salary / 12 / MONTHLY_BASE_HOURS : hourlyWage;
+    return hourlyOf(useEarningStore());
 }
 
 /** 출근 ~ 퇴근 막대. 점심 구간은 빗금, 지금 위치는 채움 */
@@ -104,62 +128,132 @@ function DayBar({ st, compact }: { st: DayStatus; compact?: boolean }) {
     );
 }
 
+/** 정시 퇴근 + n시간 → "21:00" */
+const otEndClock = (st: DayStatus, hours: number) => fmtClock(st.endMin + hours * 60);
+
 function remainingLabel({ st, ot, phase }: View) {
-    if (phase === "overtime" && ot) return `초과근무 ${fmtDuration(ot.sec)}째`;
+    if (phase === "overtime" && ot)
+        return ot.plannedEndTs
+            ? `초과근무 끝(${fmtClock(Math.round((ot.plannedEndTs - ot.startTs) / 60000) + st.endMin)})까지 ${fmtDuration(ot.remainingSec)}`
+            : `초과근무 ${fmtDuration(ot.sec)}째`;
     if (phase === "before") return `출근까지 ${fmtDuration(st.remainingSec)}`;
-    if (phase === "done") return ot ? `초과근무 ${fmtDuration(ot.sec)}까지 하고 퇴근!` : "오늘 일 끝! 수고했어요";
+    if (phase === "done")
+        return ot && ot.sec > 0
+            ? `초과근무 ${ot.sec % 3600 === 0 ? `${ot.sec / 3600}시간` : fmtDuration(ot.sec)} 하고 퇴근!`
+            : "오늘 일 끝! 수고했어요";
     return `퇴근까지 ${fmtDuration(st.remainingSec)}`;
 }
 
-/** 퇴근 이후: 초과근무 시작 / 퇴근하기 / 초과근로 기록에 추가 */
+/** "몇 시간 할까요?" 칩: 1시간(19:00) 2시간(20:00) … */
+function HourChips({ st, from = 1, onPick }: { st: DayStatus; from?: number; onPick: (hours: number) => void }) {
+    return (
+        <div className="flex flex-wrap gap-1.5">
+            {Array.from({ length: 6 }, (_, i) => from + i).map((h) => (
+                <button
+                    key={h}
+                    onClick={() => onPick(h)}
+                    className="rounded-lg border border-danger/30 bg-danger/[0.07] px-2.5 py-1.5 text-xs font-semibold text-danger transition hover:bg-danger/20"
+                >
+                    {h}시간 <span className="font-normal opacity-70">~{otEndClock(st, h)}</span>
+                </button>
+            ))}
+        </div>
+    );
+}
+
+/**
+ * 퇴근 이후 초과근무.
+ * 1시간 단위로 신청·지급되므로 시작할 때 몇 시간 할지 고르고, 그 종료 시각까지 센다.
+ */
 function OvertimeControls({ view }: { view: View }) {
     const { overtime, set, hideMoney } = useEarningStore();
     const entries = useOvertimeStore((s) => s.entries);
     const setEntry = useOvertimeStore((s) => s.setEntry);
+    const [picking, setPicking] = useState(false);
     const { st, ot, phase, workDate } = view;
     const blur = hideMoney ? BLUR : "";
 
+    // 아직 초과근무 안 함 → 몇 시간 할지 고르기
     if (phase === "done" && !ot) {
         return (
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-                <button
-                    onClick={() => set({ overtime: { date: workDate } })}
-                    className="flex items-center gap-1.5 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm font-semibold text-danger transition hover:bg-danger/20"
-                >
-                    <Flame size={15} /> 아직 일하는 중이에요
-                </button>
-                <span className="text-xs text-faint">
-                    정시 퇴근({fmtClock(st.endMin)})부터 초과근무로 계산해요. 22시까지 150%, 이후 200%.
-                </span>
+            <div className="mt-5 space-y-2.5">
+                {picking ? (
+                    <>
+                        <div className="text-sm font-semibold text-content">초과근무 몇 시간 할까요?</div>
+                        <HourChips st={st} onPick={(hours) => set({ overtime: { date: workDate, hours } })} />
+                        <button onClick={() => setPicking(false)} className="text-xs text-faint hover:text-muted">
+                            취소
+                        </button>
+                    </>
+                ) : (
+                    <button
+                        onClick={() => setPicking(true)}
+                        className="flex items-center gap-1.5 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm font-semibold text-danger transition hover:bg-danger/20"
+                    >
+                        <Flame size={15} /> 아직 일하는 중이에요
+                    </button>
+                )}
+                <p className="text-xs text-faint">
+                    정시 퇴근({fmtClock(st.endMin)})부터 1시간 단위로 계산해요. 22시까지 150%, 이후 200%.
+                </p>
             </div>
         );
     }
 
     if (!ot || !overtime) return null;
+    const hours = overtime.hours;
 
     if (ot.active) {
+        // 예전 방식(종료 시각 없이 시작)으로 진행 중이면 종료 시각부터 정하게 한다
+        if (!hours) {
+            return (
+                <div className="mt-5 space-y-2.5">
+                    <div className="text-sm font-semibold text-content">
+                        초과근무는 1시간 단위예요. 종료 시각을 정해 주세요
+                    </div>
+                    <HourChips
+                        st={st}
+                        from={Math.max(1, Math.ceil(ot.sec / 3600))}
+                        onPick={(h) => set({ overtime: { ...overtime, hours: h } })}
+                    />
+                    <GhostButton onClick={() => set({ overtime: null })}>잘못 눌렀어요</GhostButton>
+                </div>
+            );
+        }
+        const doneHours = Math.floor(ot.sec / 3600);
         return (
             <div className="mt-5 flex flex-wrap items-center gap-2">
-                <PrimaryButton onClick={() => set({ overtime: { ...overtime, endedAt: Date.now() } })}>
+                <PrimaryButton onClick={() => set({ overtime: { ...overtime, hours: hours + 1 } })}>
                     <span className="flex items-center gap-1.5">
-                        <LogOut size={15} /> 퇴근하기
+                        <Plus size={15} /> 1시간 연장
                     </span>
                 </PrimaryButton>
+                <GhostButton
+                    onClick={() =>
+                        // 1시간 단위라 다 채운 시간만 인정. 한 시간도 못 채웠으면 초과근무 없음
+                        set({ overtime: doneHours > 0 ? { ...overtime, hours: doneHours } : null })
+                    }
+                >
+                    <span className="flex items-center gap-1.5">
+                        <LogOut size={13} /> 일찍 퇴근 ({doneHours}시간 인정)
+                    </span>
+                </GhostButton>
                 <GhostButton onClick={() => set({ overtime: null })}>잘못 눌렀어요</GhostButton>
                 <span className="text-xs tabular-nums text-faint">
-                    지금 {ot.rateNow * 100}% 적용 중 · 초과수당 <span className={blur}>+{fmtWon(ot.earned)}</span>
+                    {hours}시간 신청 · 지금 {ot.rateNow * 100}% · 초과수당 <span className={blur}>+{fmtWon(ot.earned)}</span>
                 </span>
             </div>
         );
     }
 
-    // 퇴근 완료: 초과근로 기록 페이지로 보내기 (10분 단위 내림)
-    const minutes = Math.floor(ot.sec / 600) * 10;
+    // 종료 시각이 지나 퇴근 완료 → 초과근로 기록으로 보내기
+    const h = hours ?? Math.floor(ot.sec / 3600);
     const existing = entries[workDate];
     return (
         <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-line/10 bg-line/[0.03] p-3 text-sm">
             <span className="text-muted">
-                초과근무 {fmtDuration(ot.sec)} · 초과수당 <b className={`text-good ${blur}`}>+{fmtWon(ot.earned)}</b>
+                초과근무 {h}시간 ({fmtClock(st.endMin)}~{otEndClock(st, h)}) · 초과수당{" "}
+                <b className={`text-good ${blur}`}>+{fmtWon(ot.earned)}</b>
             </span>
             {overtime.saved ? (
                 <Link href="/overtime" className="flex items-center gap-1 text-xs font-semibold text-good hover:underline">
@@ -169,27 +263,24 @@ function OvertimeControls({ view }: { view: View }) {
                 <Link href="/overtime" className="text-xs text-faint hover:text-muted hover:underline">
                     이 날 초과근로 기록이 이미 있어요 → 확인하기
                 </Link>
-            ) : minutes > 0 ? (
+            ) : h > 0 ? (
                 <GhostButton
                     onClick={() => {
-                        setEntry(workDate, {
-                            start: fmtClock(st.endMin),
-                            hours: Math.round((minutes / 60) * 100) / 100,
-                            breakMin: 0,
-                            comp: "pay",
-                        });
+                        setEntry(workDate, { start: fmtClock(st.endMin), hours: h, breakMin: 0, comp: "pay" });
                         set({ overtime: { ...overtime, saved: true } });
                     }}
                 >
-                    초과근로 기록에 추가 ({fmtClock(st.endMin)}부터 {Math.floor(minutes / 60)}시간{" "}
-                    {minutes % 60 ? `${minutes % 60}분` : ""})
+                    초과근로 기록에 추가 ({fmtClock(st.endMin)}부터 {h}시간)
                 </GhostButton>
             ) : null}
             <button
-                onClick={() => set({ overtime: { date: overtime.date, saved: overtime.saved } })}
+                onClick={() =>
+                    // 1시간 더 하기로 하면 종료 시각을 늘려 다시 진행 중으로. 이미 기록에 넣었다면 표시만 푼다
+                    set({ overtime: { date: overtime.date, hours: h + 1 } })
+                }
                 className="text-xs text-faint hover:text-muted"
             >
-                아직 안 끝났어요
+                1시간 더 할게요
             </button>
         </div>
     );
@@ -223,7 +314,7 @@ function MiniView({ win }: { win: Window }) {
                 <span className="text-[11px] tabular-nums text-faint">{fmtClock(view.st.endMin)} 퇴근</span>
             </div>
             <div className={`text-[34px] font-extrabold tracking-tight text-content ${hideMoney ? BLUR : ""}`}>
-                <Odometer value={view.total} />
+                <LiveAmount win={win} />
                 <span className="ml-1 text-lg font-bold text-muted">원</span>
             </div>
             <DayBar st={view.st} compact />
@@ -299,7 +390,7 @@ export default function EarningPage() {
                             <div
                                 className={`text-[44px] font-extrabold tracking-tight text-content sm:text-7xl ${blur}`}
                             >
-                                <Odometer value={view.total} />
+                                <LiveAmount />
                             </div>
                             <span className="relative mb-1 text-xl font-bold text-muted sm:mb-2 sm:text-2xl">
                                 원

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { OvertimeSession } from "./calc";
 
-interface EarningState {
+export interface EarningState {
     /** 출근 시각 "HH:mm" */
     start: string;
     /** 점심 시작 "HH:mm". 빈 값이면 자동(12시 또는 출근 4시간 뒤) */

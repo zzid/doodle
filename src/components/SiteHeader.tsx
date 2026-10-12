@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Home, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronRight, Home, Sparkles } from "lucide-react";
 import { SITE_GROUPS, findGroupByPath, findPageByPath, visibleSections } from "@/config/site";
 import { popover } from "@/config/motion";
 
@@ -108,64 +108,30 @@ export function SiteHeader() {
                                 initial="hidden"
                                 animate="visible"
                                 exit="exit"
-                                className="absolute right-0 top-[calc(100%+8px)] max-h-[70vh] w-[min(88vw,320px)] overflow-y-auto rounded-xl border border-line/10 bg-surface/95 p-2 shadow-2xl shadow-black/50 backdrop-blur"
+                                className="absolute right-0 top-[calc(100%+8px)] max-h-[70vh] w-[min(88vw,320px)] overflow-y-auto rounded-xl border border-line/15 bg-surface p-2 shadow-2xl shadow-black/60"
                             >
-                                <Link
-                                    href="/"
-                                    role="menuitem"
-                                    className={`mb-1 flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-semibold transition ${
-                                        isHome
-                                            ? "bg-accent/20 text-accent"
-                                            : "text-muted hover:bg-line/5"
-                                    }`}
-                                >
-                                    <Home aria-hidden size={15} /> 홈
-                                </Link>
+                                <MenuLink href="/" active={isHome} icon={<Home aria-hidden size={15} />}>
+                                    홈
+                                </MenuLink>
 
                                 {SITE_GROUPS.map((group) => (
-                                    <div
-                                        key={group.id}
-                                        className="mt-2 border-t border-line/10 pt-2 first:mt-0 first:border-t-0 first:pt-0"
-                                    >
-                                        <div className="flex items-center gap-1.5 px-2.5 pb-0.5 text-xs font-bold text-content">
-                                            <span aria-hidden>{group.emoji}</span>
+                                    <div key={group.id} className="mt-2 border-t border-line/10 pt-2">
+                                        {/* 그룹 제목: 클릭 불가 — 작고 흐린 라벨로만 */}
+                                        <div className="px-2.5 pb-1 pt-0.5 text-[11px] font-medium text-faint">
                                             {group.label}
                                         </div>
-                                        {visibleSections(group).map((section) => (
-                                            <div key={section.id} className="mt-1.5">
-                                                <div className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-faint">
-                                                    {section.label}
-                                                </div>
-                                                {section.pages.map((page) => {
-                                                    const active =
-                                                        current?.path === page.path;
-                                                    return (
-                                                        <Link
-                                                            key={page.path}
-                                                            href={page.path}
-                                                            role="menuitem"
-                                                            className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition ${
-                                                                active
-                                                                    ? "bg-accent/20 font-semibold text-accent"
-                                                                    : "text-muted hover:bg-line/5"
-                                                            }`}
-                                                        >
-                                                            <span aria-hidden>
-                                                                {page.emoji}
-                                                            </span>
-                                                            <span className="min-w-0 truncate">
-                                                                {page.title}
-                                                            </span>
-                                                            {active && (
-                                                                <span className="ml-auto text-[10px] text-accent">
-                                                                    현재
-                                                                </span>
-                                                            )}
-                                                        </Link>
-                                                    );
-                                                })}
-                                            </div>
-                                        ))}
+                                        {visibleSections(group)
+                                            .flatMap((section) => section.pages)
+                                            .map((page) => (
+                                                <MenuLink
+                                                    key={page.path}
+                                                    href={page.path}
+                                                    active={current?.path === page.path}
+                                                    icon={<span aria-hidden>{page.emoji}</span>}
+                                                >
+                                                    {page.title}
+                                                </MenuLink>
+                                            ))}
                                     </div>
                                 ))}
                             </motion.div>
@@ -174,5 +140,47 @@ export function SiteHeader() {
                 </div>
             </div>
         </header>
+    );
+}
+
+/** 메뉴의 클릭 가능한 행: 아이콘 타일 + 밝은 글씨 + 오른쪽 화살표 + hover 배경 */
+function MenuLink({
+    href,
+    active,
+    icon,
+    children,
+}: {
+    href: string;
+    active: boolean;
+    icon: React.ReactNode;
+    children: React.ReactNode;
+}) {
+    return (
+        <Link
+            href={href}
+            role="menuitem"
+            aria-current={active ? "page" : undefined}
+            className={`group flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-medium transition ${
+                active ? "bg-accent/15 text-accent" : "text-content hover:bg-line/[0.07]"
+            }`}
+        >
+            <span
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[15px] ${
+                    active ? "bg-accent/20" : "bg-line/[0.06] group-hover:bg-line/10"
+                }`}
+            >
+                {icon}
+            </span>
+            <span className="min-w-0 flex-1 truncate">{children}</span>
+            {active ? (
+                <span className="text-[10px] font-semibold">현재</span>
+            ) : (
+                <ChevronRight
+                    aria-hidden
+                    size={15}
+                    className="shrink-0 text-faint transition group-hover:translate-x-0.5 group-hover:text-content"
+                />
+            )}
+        </Link>
     );
 }

@@ -5,6 +5,7 @@
  * 점심 시간 동안에는 돈이 오르지 않는다.
  * 정시 퇴근 이후 "초과근무"를 켜면 사내 연장근로 가산율로 계속 오른다
  * (22시까지 150%, 22시~06시 200% — 초과근로 기록 페이지와 같은 기준, 평일 기준).
+ * 초과근무는 1시간 단위로 신청·지급되므로 시작할 때 몇 시간 할지(종료 시각)를 정한다.
  */
 
 export const STAY_MIN = 9 * 60;
@@ -53,6 +54,8 @@ export interface DayStatus {
     /** 0~1, 출근~퇴근 체류 시간 기준 진행률 */
     stayProgress: number;
     earned: number;
+    /** 밀리초까지 반영한 소수 금액 (연속 애니메이션용) */
+    earnedExact: number;
     dailyTotal: number;
 }
 
@@ -73,6 +76,8 @@ export function dayStatus(now: Date, start: string, lunch: string | undefined, h
     const l1 = lunchEndMin * 60;
 
     const paidSec = overlap(s, nowSec, s, l0) + overlap(s, nowSec, l1, e);
+    const nowExact = nowSec + now.getMilliseconds() / 1000;
+    const paidExact = overlap(s, nowExact, s, l0) + overlap(s, nowExact, l1, e);
 
     let phase: Phase;
     if (nowSec < s) phase = "before";
@@ -90,6 +95,7 @@ export function dayStatus(now: Date, start: string, lunch: string | undefined, h
         remainingSec: phase === "before" ? s - nowSec : Math.max(0, e - nowSec),
         stayProgress: Math.min(1, Math.max(0, (nowSec - s) / (e - s))),
         earned: Math.floor((paidSec * hourly) / 3600),
+        earnedExact: (paidExact * hourly) / 3600,
         dailyTotal: Math.round((PAID_SEC * hourly) / 3600),
     };
 }
@@ -102,7 +108,9 @@ export const OT_RATE_NIGHT = 2.0;
 export interface OvertimeSession {
     /** 초과근무가 붙은 근무일 "YYYY-MM-DD" (자정을 넘겨도 이 날짜 기준) */
     date: string;
-    /** 퇴근하기를 누른 시각(epoch ms). 없으면 진행 중 */
+    /** 신청한 초과근무 시간(1시간 단위). 정시 퇴근 + hours 가 종료 시각 */
+    hours?: number;
+    /** 일찍 퇴근을 누른 시각(epoch ms) */
     endedAt?: number;
     /** 초과근로 기록 페이지에 추가했는지 */
     saved?: boolean;
@@ -112,9 +120,14 @@ export interface OvertimeStatus {
     active: boolean;
     /** 정시 퇴근 시각 (epoch ms) */
     startTs: number;
+    /** 신청한 종료 시각 (epoch ms). 시간을 아직 안 정했으면 없음 */
+    plannedEndTs?: number;
+    /** 종료 시각까지 남은 초 */
+    remainingSec: number;
     sec: number;
     nightSec: number;
     earned: number;
+    earnedExact: number;
     /** 지금 적용 중인 가산율 */
     rateNow: number;
 }
@@ -135,19 +148,29 @@ export function overtimeStatus(
 ): OvertimeStatus {
     const base = dateStartTs(session.date);
     const startTs = base + endMin * 60_000;
-    const endTs = Math.max(startTs, session.endedAt ?? now.getTime());
+    const plannedEndTs = session.hours ? startTs + session.hours * 3_600_000 : undefined;
+    // 신청한 종료 시각, 일찍 퇴근한 시각, 지금 중 가장 이른 때까지
+    const endTs = Math.max(
+        startTs,
+        Math.min(now.getTime(), plannedEndTs ?? Infinity, session.endedAt ?? Infinity)
+    );
     const sec = Math.floor((endTs - startTs) / 1000);
     // 22시~다음날 06시 구간과 겹치는 만큼 야간
     const n0 = base + 22 * 3_600_000;
     const n1 = base + 30 * 3_600_000;
     const nightSec = Math.floor(Math.max(0, Math.min(endTs, n1) - Math.max(startTs, n0)) / 1000);
     const daySec = sec - nightSec;
+    const secExact = (endTs - startTs) / 1000;
+    const nightExact = Math.max(0, Math.min(endTs, n1) - Math.max(startTs, n0)) / 1000;
     return {
-        active: !session.endedAt,
+        active: !session.endedAt && (plannedEndTs === undefined || now.getTime() < plannedEndTs),
         startTs,
+        plannedEndTs,
+        remainingSec: plannedEndTs ? Math.max(0, Math.ceil((plannedEndTs - now.getTime()) / 1000)) : 0,
         sec,
         nightSec,
         earned: Math.floor(((daySec * OT_RATE_DAY + nightSec * OT_RATE_NIGHT) * hourly) / 3600),
+        earnedExact: (((secExact - nightExact) * OT_RATE_DAY + nightExact * OT_RATE_NIGHT) * hourly) / 3600,
         rateNow: isNightTs(now.getTime()) ? OT_RATE_NIGHT : OT_RATE_DAY,
     };
 }

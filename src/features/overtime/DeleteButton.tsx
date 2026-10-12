@@ -14,9 +14,12 @@ export function DeleteButton({
     description,
     disabled,
     className = "",
+    iconOnly,
     onConfirm,
 }: {
     label: string;
+    /** 목록 줄처럼 좁은 곳: 휴지통 아이콘만 (label 은 접근성 이름으로 쓴다) */
+    iconOnly?: boolean;
     /** 모달 제목. 예: "10월 12일 기록을 삭제할까요?" */
     title: string;
     /** 무엇이 지워지는지 */
@@ -29,13 +32,29 @@ export function DeleteButton({
 
     return (
         <>
-            <GhostButton
-                disabled={disabled}
-                onClick={() => setOpen(true)}
-                className={`flex items-center justify-center gap-1.5 hover:!border-danger/50 hover:!bg-danger/10 hover:!text-danger disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
-            >
-                <Trash2 size={13} /> {label}
-            </GhostButton>
+            {iconOnly ? (
+                <button
+                    type="button"
+                    aria-label={label}
+                    title={label}
+                    disabled={disabled}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setOpen(true);
+                    }}
+                    className={`rounded-md p-1 text-faint transition hover:bg-danger/10 hover:text-danger disabled:opacity-40 ${className}`}
+                >
+                    <Trash2 size={13} />
+                </button>
+            ) : (
+                <GhostButton
+                    disabled={disabled}
+                    onClick={() => setOpen(true)}
+                    className={`flex items-center justify-center gap-1.5 hover:!border-danger/50 hover:!bg-danger/10 hover:!text-danger disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
+                >
+                    <Trash2 size={13} /> {label}
+                </GhostButton>
+            )}
 
             <Modal open={open} onClose={() => setOpen(false)} role="alertdialog" labelledBy="delete-dialog-title">
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-danger/15 text-danger">

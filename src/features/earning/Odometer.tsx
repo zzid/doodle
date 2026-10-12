@@ -1,47 +1,101 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 /**
- * 숫자가 바뀔 때 자리마다 위로 굴러가는 카운터.
+ * 기계식 계수기처럼 연속으로 굴러가는 숫자.
  *
- * framer-motion 대신 CSS 애니메이션을 쓴다. 미니 창(Picture-in-Picture)은 별도 document 라
- * 원래 탭이 백그라운드로 가면 JS 애니메이션 프레임이 멈추는데, CSS 애니메이션은 창마다 따로 돈다.
+ * - 일의 자리는 값의 소수부까지 반영해 쉬지 않고 돈다.
+ * - 윗자리는 아랫자리가 0 으로 넘어간 직후 짧은 구간 동안 스르륵 다음 숫자로 따라간다.
+ * 각 자리는 0~9,0 숫자 띠를 세로로 쌓아 두고 translateY 로 위치만 옮긴다.
  */
-function Digit({ d }: { d: string }) {
-    const [state, setState] = useState({ cur: d, prev: "", n: 0 });
-
-    useEffect(() => {
-        setState((s) => (s.cur === d ? s : { cur: d, prev: s.cur, n: s.n + 1 }));
-    }, [d]);
-
-    const animate = state.n > 0;
+function DigitWheel({ pos }: { pos: number }) {
     return (
         <span className="relative inline-block overflow-hidden align-bottom">
             {/* 자리 폭·높이 고정용 (tabular-nums 라 0 폭 = 모든 숫자 폭) */}
             <span className="invisible">0</span>
-            {animate && (
-                <span key={`o${state.n}`} aria-hidden className="absolute inset-0 animate-odo-out text-center">
-                    {state.prev}
-                </span>
-            )}
             <span
-                key={`i${state.n}`}
-                className={`absolute inset-0 text-center ${animate ? "animate-odo-in" : ""}`}
+                aria-hidden
+                className="absolute inset-x-0 top-0 flex flex-col text-center will-change-transform"
+                style={{ transform: `translateY(${-pos}em)` }}
             >
-                {state.cur}
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d, i) => (
+                    <span key={i} className="block h-[1em] leading-none">
+                        {d}
+                    </span>
+                ))}
             </span>
         </span>
     );
 }
 
-export function Odometer({ value, className = "" }: { value: number; className?: string }) {
-    const chars = Math.max(0, Math.floor(value)).toLocaleString("ko-KR").split("");
+/**
+ * 윗자리가 굴러가는 구간: 아랫자리가 0 으로 넘어간 "직후"부터
+ * 그 자리 범위의 15% 동안 (단, 아무리 길어도 20원어치를 넘지 않게).
+ * 예) 십의 자리는 x0원 → x1.5원, 백의 자리는 x00원 → x15원 동안 굴러간다.
+ */
+const ROLL_FRACTION = 0.15;
+const ROLL_MAX = 20;
+/** 처음과 끝이 부드러운 곡선 */
+const smoothstep = (t: number) => t * t * (3 - 2 * t);
+
+/** 자리 k(10^k)의 바퀴 위치 0~10 */
+function wheelPos(value: number, k: number, smooth: boolean) {
+    const unit = 10 ** k;
+    const digit = Math.floor(value / unit) % 10;
+    if (!smooth) return digit;
+    if (k === 0) return value % 10;
+    const below = value % unit;
+    const span = Math.min(unit * ROLL_FRACTION, ROLL_MAX);
+    if (below >= span) return digit;
+    // 직전 숫자(0 이면 9)에서 지금 숫자로 굴러가는 중. 9 → 0 은 띠 끝의 0(위치 10)으로 이어진다
+    const prev = (digit + 9) % 10;
+    return prev + smoothstep(below / span);
+}
+
+export function LiveOdometer({ value, className = "" }: { value: number; className?: string }) {
+    const [smooth, setSmooth] = useState(true);
+    useEffect(() => {
+        // OS 의 "동작 줄이기" 를 켜 두면 정수로 끊어서 보여준다
+        const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const update = () => setSmooth(!mq.matches);
+        update();
+        mq.addEventListener("change", update);
+        return () => mq.removeEventListener("change", update);
+    }, []);
+
+    const v = Math.max(0, value);
+    const digits = Math.max(1, Math.floor(v).toString().length);
+    const parts: React.ReactNode[] = [];
+    for (let k = digits - 1; k >= 0; k--) {
+        parts.push(<DigitWheel key={`d${k}`} pos={wheelPos(v, k, smooth)} />);
+        if (k > 0 && k % 3 === 0) parts.push(<span key={`c${k}`}>,</span>);
+    }
     return (
-        <span className={`inline-flex tabular-nums leading-none ${className}`} aria-label={`${value}`}>
-            {chars.map((c, i) => {
-                // 오른쪽 자리 기준 key → 자릿수가 늘어나도 기존 자리가 다시 마운트되지 않는다
-                const pos = chars.length - 1 - i;
-                return /\d/.test(c) ? <Digit key={pos} d={c} /> : <span key={`s${pos}`}>{c}</span>;
-            })}
+        <span
+            className={`inline-flex tabular-nums leading-none ${className}`}
+            aria-label={`${Math.floor(v).toLocaleString("ko-KR")}`}
+        >
+            {parts}
         </span>
     );
+}
+
+/**
+ * 매 애니메이션 프레임마다 valueAt() 을 다시 계산한다.
+ * win 을 주면 그 창의 requestAnimationFrame 을 쓴다 (미니 창은 원래 탭이 백그라운드여도 계속 돈다).
+ */
+export function useFrameValue(valueAt: () => number, win?: Window | null) {
+    const fn = useRef(valueAt);
+    fn.current = valueAt;
+    const [value, setValue] = useState(() => valueAt());
+    useEffect(() => {
+        const w = win ?? window;
+        let id = 0;
+        const loop = () => {
+            setValue(fn.current());
+            id = w.requestAnimationFrame(loop);
+        };
+        id = w.requestAnimationFrame(loop);
+        return () => w.cancelAnimationFrame(id);
+    }, [win]);
+    return value;
 }

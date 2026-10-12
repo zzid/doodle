@@ -46,6 +46,13 @@ export const SITE_GROUPS: SiteGroup[] = [
                 label: "기록",
                 pages: [
                     {
+                        path: "/todo",
+                        title: "할 일",
+                        description:
+                            "자연어로 빠르게 입력하고, 오늘·예정·보드로 정리하는 할 일 관리예요.",
+                        emoji: "✅",
+                    },
+                    {
                         path: "/overtime",
                         title: "초과근로 기록",
                         description:
@@ -87,6 +94,18 @@ export const SITE_GROUPS: SiteGroup[] = [
         description: "메이플스토리 계산기, 캘린더, 이벤트 아카이브예요.",
         emoji: "🍁",
         sections: [
+            {
+                id: "manage",
+                label: "관리",
+                pages: [
+                    {
+                        path: `${GAME_BASE}/maple-todo`,
+                        title: "메TODO",
+                        description: "캐릭터별 장비·내실 할 일을 체크리스트로 관리해요.",
+                        emoji: "📝",
+                    },
+                ],
+            },
             {
                 id: "calc",
                 label: "계산기",

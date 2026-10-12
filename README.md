@@ -8,6 +8,7 @@
 
 | 페이지 | 경로 | 설명 |
 | --- | --- | --- |
+| ✅ 할 일 | [`/todo`](https://doodle-teal-three.vercel.app/todo) | 자연어 빠른 입력, 스마트 뷰·보드, GitHub 스타일 라벨, 반복 일정 |
 | ⏰ 초과근로 기록 | [`/overtime`](https://doodle-teal-three.vercel.app/overtime) | 달력에 초과근로를 기록하고 월별 수당·보상휴가·실수령액을 계산 |
 | 💸 오늘 번 돈 | [`/earning`](https://doodle-teal-three.vercel.app/earning) | 출근부터 번 돈이 초 단위로 오르고 퇴근까지 남은 시간·초과근무를 보여줌 (미니 창 지원) |
 | 🎬 Motion 실험 | [`/motion`](https://doodle-teal-three.vercel.app/motion) | framer-motion 예제 모음 |
