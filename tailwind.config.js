@@ -41,9 +41,26 @@ module.exports = {
                     from: { opacity: "0", transform: "translateY(8px)" },
                     to: { opacity: "1", transform: "none" },
                 },
+                // 숫자 슬롯(오도미터): 새 숫자는 아래에서 올라오고 이전 숫자는 위로 빠진다
+                "odo-in": {
+                    from: { transform: "translateY(100%)" },
+                    to: { transform: "translateY(0)" },
+                },
+                "odo-out": {
+                    from: { transform: "translateY(0)" },
+                    to: { transform: "translateY(-100%)" },
+                },
+                "float-up": {
+                    "0%": { opacity: "0", transform: "translateY(4px)" },
+                    "20%": { opacity: "1" },
+                    "100%": { opacity: "0", transform: "translateY(-14px)" },
+                },
             },
             animation: {
                 "fade-up": "fade-up var(--dur-base) var(--ease-out) both",
+                "odo-in": "odo-in 360ms var(--ease-out) both",
+                "odo-out": "odo-out 360ms var(--ease-out) both",
+                "float-up": "float-up 900ms var(--ease-out) both",
             },
         },
     },

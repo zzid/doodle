@@ -19,11 +19,9 @@ import {
 import { HOLIDAYS } from "./holidays";
 import { useOvertimeStore } from "./store";
 import { DeleteButton } from "./DeleteButton";
-import { DraftNumberInput } from "./inputs";
+import { DraftNumberInput, TimeSelect } from "./inputs";
 
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
-const HOURS_24 = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
-const MINUTES = ["00", "10", "20", "30", "40", "50"];
 
 /** "19:00" → "19시 00분" */
 const fmtKoClock = (hhmm: string) => {
@@ -78,46 +76,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputClass =
     "w-full rounded-lg border border-line/15 bg-raised/80 px-2 py-1.5 text-sm font-medium tabular-nums text-content outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30";
-
-const selectClass =
-    "w-[4.5rem] shrink-0 cursor-pointer rounded-lg border border-line/15 bg-raised/80 py-1.5 pl-3 pr-1 text-sm font-medium tabular-nums text-content outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30";
-
-/** 24시간 표기 시각 선택 (브라우저 time input 은 로케일에 따라 오전/오후로 보여서 직접 그린다) */
-function TimeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-    const [h, m] = value.split(":");
-    // 10분 단위가 아닌 예전 값도 보이도록 목록에 끼워 넣는다
-    const minutes = MINUTES.includes(m) ? MINUTES : [...MINUTES, m].sort();
-    return (
-        <div className="flex items-center gap-1.5">
-            <select
-                aria-label="시"
-                value={h}
-                onChange={(e) => onChange(`${e.target.value}:${m}`)}
-                className={`${selectClass}`}
-            >
-                {HOURS_24.map((v) => (
-                    <option key={v} value={v}>
-                        {v}
-                    </option>
-                ))}
-            </select>
-            <span className="shrink-0 text-xs text-muted">시</span>
-            <select
-                aria-label="분"
-                value={m}
-                onChange={(e) => onChange(`${h}:${e.target.value}`)}
-                className={`${selectClass}`}
-            >
-                {minutes.map((v) => (
-                    <option key={v} value={v}>
-                        {v}
-                    </option>
-                ))}
-            </select>
-            <span className="shrink-0 text-xs text-muted">분</span>
-        </div>
-    );
-}
 
 export function DayEditor({ date }: { date: string }) {
     const entries = useOvertimeStore((s) => s.entries);

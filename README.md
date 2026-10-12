@@ -1,28 +1,16 @@
 # Doodle
 
-기록 도구, 실험용 컴포넌트, 게임 유틸을 모아둔 개인 작업 공간.
+기록 도구와 실험용 컴포넌트를 모아둔 개인 작업 공간.
 
 - 사이트: [doodle-teal-three.vercel.app](https://doodle-teal-three.vercel.app)
 
 ## 페이지
 
-### 기록 · 실험
-
 | 페이지 | 경로 | 설명 |
 | --- | --- | --- |
 | ⏰ 초과근로 기록 | [`/overtime`](https://doodle-teal-three.vercel.app/overtime) | 달력에 초과근로를 기록하고 월별 수당·보상휴가·실수령액을 계산 |
+| 💸 오늘 번 돈 | [`/earning`](https://doodle-teal-three.vercel.app/earning) | 출근부터 번 돈이 초 단위로 오르고 퇴근까지 남은 시간·초과근무를 보여줌 (미니 창 지원) |
 | 🎬 Motion 실험 | [`/motion`](https://doodle-teal-three.vercel.app/motion) | framer-motion 예제 모음 |
-
-### 게임 유틸 (`/private/*`)
-
-| 페이지 | 경로 |
-| --- | --- |
-| ⚡ 심볼 계산기 | [`/private/symbol`](https://doodle-teal-three.vercel.app/private/symbol) |
-| 🧮 MVP 회수율 계산기 | [`/private/mvp`](https://doodle-teal-three.vercel.app/private/mvp) |
-
-홈·메뉴에서 숨긴 페이지(`hidden: true`): 경험치 쿠폰 계산기, 이벤트 캘린더, 메이플 캘린더, 메포 차트, Event 2412/2408. 주소로 직접 들어가면 열린다.
-
-예전 주소(`/symbol`, `/mvp` 등)는 `next.config.js`의 리다이렉트로 `/private/*`로 넘어간다.
 
 ## 개발
 
@@ -41,13 +29,13 @@ Vercel이 `master` 푸시마다 자동으로 프로덕션 배포한다. 별도 �
 ## 구조
 
 ```
-app/                  라우트 (게임 유틸은 app/private/ 아래)
+app/                  라우트
 src/config/site.ts    페이지 레지스트리 — 홈 탭과 상단 메뉴가 이 목록만 본다
 src/features/<이름>/  페이지별 기능 코드
 src/styles/index.css  디자인 토큰 (CSS 변수, tailwind.config.js 에서 매핑)
 ```
 
-새 페이지 추가: `app/` 아래 라우트를 만들고 `src/config/site.ts`의 알맞은 그룹(`personal` / `game`)에 등록한다.
+새 페이지 추가: `app/` 아래 라우트를 만들고 `src/config/site.ts`의 알맞은 그룹에 등록한다.
 
 ## 초과근로 기록 메모
 

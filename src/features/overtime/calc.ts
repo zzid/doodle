@@ -261,8 +261,11 @@ export const hourlyFromSalary = (salary: number) =>
 
 /* ---------- 표시용 ---------- */
 
-/** 금액 가리기(hideWage) 켜짐일 때 붙이는 클래스 */
-export const BLUR_CLASS = "blur-[6px] select-none transition-[filter] duration-fast";
+/**
+ * 금액 가리기 켜짐일 때 붙이는 클래스.
+ * 흐림 반경을 글자 크기(em)에 비례시켜야 큰 숫자도 읽히지 않는다 (고정 px 은 큰 글자에서 약해짐).
+ */
+export const BLUR_CLASS = "blur-[0.45em] select-none transition-[filter] duration-fast";
 
 /** 분 → "2.5h" */
 export const fmtH = (min: number) => {

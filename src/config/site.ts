@@ -55,6 +55,19 @@ export const SITE_GROUPS: SiteGroup[] = [
                 ],
             },
             {
+                id: "fun",
+                label: "재미",
+                pages: [
+                    {
+                        path: "/earning",
+                        title: "오늘 번 돈",
+                        description:
+                            "출근부터 지금까지 번 돈이 1초마다 올라가고, 퇴근까지 남은 시간을 보여줘요.",
+                        emoji: "💸",
+                    },
+                ],
+            },
+            {
                 id: "lab",
                 label: "실험실",
                 pages: [

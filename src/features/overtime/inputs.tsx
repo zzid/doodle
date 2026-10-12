@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { NumberInput } from "@/features/symbol/components/ui";
 
+const HOURS_24 = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+
 /** 천 단위 콤마가 보이는 금액 입력 */
 export function MoneyInput({
     value,
@@ -22,7 +24,7 @@ export function MoneyInput({
                 value={value ? value.toLocaleString("ko-KR") : ""}
                 onFocus={(e) => e.currentTarget.select()}
                 onChange={(e) => onChange(Number(e.target.value.replace(/[^0-9]/g, "")) || 0)}
-                className={`${hidden ? "blur-[6px] transition-[filter] duration-fast focus:blur-none" : ""} w-36 rounded-lg border border-line/15 bg-raised/80 px-2.5 py-1.5 text-right text-sm font-medium tabular-nums text-content outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30`}
+                className={`${hidden ? "blur-[0.45em] transition-[filter] duration-fast focus:blur-none" : ""} w-36 rounded-lg border border-line/15 bg-raised/80 px-2.5 py-1.5 text-right text-sm font-medium tabular-nums text-content outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30`}
             />
             <span className="text-xs text-muted">{suffix}</span>
         </div>
@@ -61,5 +63,56 @@ export function DraftNumberInput({
             }}
             onBlur={() => setDraft(String(value))}
         />
+    );
+}
+
+const selectClass =
+    "w-[4.5rem] shrink-0 cursor-pointer rounded-lg border border-line/15 bg-raised/80 py-1.5 pl-3 pr-1 text-sm font-medium tabular-nums text-content outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/30";
+
+/** 24시간 표기 시각 선택 (브라우저 time input 은 로케일에 따라 오전/오후로 보여서 직접 그린다) */
+export function TimeSelect({
+    value,
+    onChange,
+    minuteStep = 10,
+}: {
+    value: string;
+    onChange: (v: string) => void;
+    minuteStep?: number;
+}) {
+    const [h, m] = value.split(":");
+    const steps = Array.from({ length: Math.ceil(60 / minuteStep) }, (_, i) =>
+        String(i * minuteStep).padStart(2, "0")
+    );
+    // 단위에 맞지 않는 예전 값도 보이도록 목록에 끼워 넣는다
+    const minutes = steps.includes(m) ? steps : [...steps, m].sort();
+    return (
+        <div className="flex items-center gap-1.5">
+            <select
+                aria-label="시"
+                value={h}
+                onChange={(e) => onChange(`${e.target.value}:${m}`)}
+                className={`${selectClass}`}
+            >
+                {HOURS_24.map((v) => (
+                    <option key={v} value={v}>
+                        {v}
+                    </option>
+                ))}
+            </select>
+            <span className="shrink-0 text-xs text-muted">시</span>
+            <select
+                aria-label="분"
+                value={m}
+                onChange={(e) => onChange(`${h}:${e.target.value}`)}
+                className={`${selectClass}`}
+            >
+                {minutes.map((v) => (
+                    <option key={v} value={v}>
+                        {v}
+                    </option>
+                ))}
+            </select>
+            <span className="shrink-0 text-xs text-muted">분</span>
+        </div>
     );
 }
