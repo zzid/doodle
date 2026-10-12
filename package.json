@@ -2,7 +2,6 @@
     "name": "doodle",
     "version": "0.1.0",
     "private": true,
-    "homepage": "https://zzid.github.io/doodle",
     "dependencies": {
         "chart.js": "^4.5.1",
         "class-variance-authority": "^0.7.1",
@@ -27,9 +26,7 @@
     "scripts": {
         "dev": "next dev -p 3030",
         "start": "next start -p 3030",
-        "build": "next build",
-        "predeploy": "yarn build",
-        "deploy": "gh-pages -d out"
+        "build": "next build"
     },
     "browserslist": {
         "production": [
@@ -49,7 +46,6 @@
         "@types/react": "^18.0.0",
         "@types/react-dom": "^18.0.0",
         "autoprefixer": "^10.4.19",
-        "gh-pages": "^6.3.0",
         "postcss": "^8.4.38",
         "typescript": "^5.2.2"
     }

@@ -1,15 +1,25 @@
+// 게임 유틸은 /private/* 아래로 옮겼다. 예전 주소 북마크용 리다이렉트.
+const MOVED_TO_PRIVATE = [
+    "symbol",
+    "mvp",
+    "exp-coupon",
+    "calendar",
+    "maple-calendar",
+    "mepo",
+    "event-2412",
+    "event-2408",
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    // Only use basePath for GitHub Pages deployment
-    // For Vercel, leave basePath empty (deploy to root domain)
-    basePath: process.env.GITHUB_PAGES === "true" ? "/doodle" : "",
-    assetPrefix: process.env.GITHUB_PAGES === "true" ? "/doodle" : "",
-    // For static export (GitHub Pages)
-    // output: 'export',
-    // images: {
-    //   unoptimized: true,
-    // },
+    async redirects() {
+        return MOVED_TO_PRIVATE.map((p) => ({
+            source: `/${p}/:rest*`,
+            destination: `/private/${p}/:rest*`,
+            permanent: false,
+        }));
+    },
     webpack: (config) => {
         config.resolve.alias = {
             ...config.resolve.alias,

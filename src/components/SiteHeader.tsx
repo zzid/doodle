@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Home, Sparkles } from "lucide-react";
-import { SITE_SECTIONS, findPageByPath } from "@/config/site";
+import { SITE_GROUPS, findGroupByPath, findPageByPath, visibleSections } from "@/config/site";
 import { popover } from "@/config/motion";
 
 /**
@@ -19,6 +19,7 @@ export function SiteHeader() {
 
     const isHome = pathname === "/";
     const current = findPageByPath(pathname);
+    const currentGroup = findGroupByPath(pathname);
 
     // 라우트가 바뀌면 메뉴를 닫는다
     useEffect(() => setOpen(false), [pathname]);
@@ -59,6 +60,16 @@ export function SiteHeader() {
                         <span aria-hidden className="text-faint">
                             /
                         </span>
+                        {currentGroup && (
+                            <>
+                                <span className="hidden shrink-0 text-sm text-muted sm:inline">
+                                    {currentGroup.label}
+                                </span>
+                                <span aria-hidden className="hidden text-faint sm:inline">
+                                    /
+                                </span>
+                            </>
+                        )}
                         <span className="min-w-0 truncate text-sm font-semibold text-accent">
                             {current.title}
                         </span>
@@ -111,39 +122,50 @@ export function SiteHeader() {
                                     <Home aria-hidden size={15} /> 홈
                                 </Link>
 
-                                {SITE_SECTIONS.map((section) => (
-                                    <div key={section.id} className="mt-1.5">
-                                        <div className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-faint">
-                                            {section.label}
+                                {SITE_GROUPS.map((group) => (
+                                    <div
+                                        key={group.id}
+                                        className="mt-2 border-t border-line/10 pt-2 first:mt-0 first:border-t-0 first:pt-0"
+                                    >
+                                        <div className="flex items-center gap-1.5 px-2.5 pb-0.5 text-xs font-bold text-content">
+                                            <span aria-hidden>{group.emoji}</span>
+                                            {group.label}
                                         </div>
-                                        {section.pages.map((page) => {
-                                            const active =
-                                                current?.path === page.path;
-                                            return (
-                                                <Link
-                                                    key={page.path}
-                                                    href={page.path}
-                                                    role="menuitem"
-                                                    className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition ${
-                                                        active
-                                                            ? "bg-accent/20 font-semibold text-accent"
-                                                            : "text-muted hover:bg-line/5"
-                                                    }`}
-                                                >
-                                                    <span aria-hidden>
-                                                        {page.emoji}
-                                                    </span>
-                                                    <span className="min-w-0 truncate">
-                                                        {page.title}
-                                                    </span>
-                                                    {active && (
-                                                        <span className="ml-auto text-[10px] text-accent">
-                                                            현재
-                                                        </span>
-                                                    )}
-                                                </Link>
-                                            );
-                                        })}
+                                        {visibleSections(group).map((section) => (
+                                            <div key={section.id} className="mt-1.5">
+                                                <div className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-faint">
+                                                    {section.label}
+                                                </div>
+                                                {section.pages.map((page) => {
+                                                    const active =
+                                                        current?.path === page.path;
+                                                    return (
+                                                        <Link
+                                                            key={page.path}
+                                                            href={page.path}
+                                                            role="menuitem"
+                                                            className={`flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition ${
+                                                                active
+                                                                    ? "bg-accent/20 font-semibold text-accent"
+                                                                    : "text-muted hover:bg-line/5"
+                                                            }`}
+                                                        >
+                                                            <span aria-hidden>
+                                                                {page.emoji}
+                                                            </span>
+                                                            <span className="min-w-0 truncate">
+                                                                {page.title}
+                                                            </span>
+                                                            {active && (
+                                                                <span className="ml-auto text-[10px] text-accent">
+                                                                    현재
+                                                                </span>
+                                                            )}
+                                                        </Link>
+                                                    );
+                                                })}
+                                            </div>
+                                        ))}
                                     </div>
                                 ))}
                             </motion.div>
