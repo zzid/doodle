@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Check, Eye, EyeOff, Flame, LogOut, Plus } from "lucide-react";
 import { GhostButton, Panel, PrimaryButton, StatTile } from "@/features/symbol/components/ui";
-import { MoneyInput, TimeSelect } from "@/features/overtime/inputs";
+import { DraftNumberInput, MoneyInput, TimeSelect } from "@/features/overtime/inputs";
 import { useOvertimeStore } from "@/features/overtime/store";
 import {
     type DayStatus,
@@ -19,6 +19,7 @@ import {
     overtimeStatus,
 } from "./calc";
 import { LiveOdometer, useFrameValue } from "./Odometer";
+import { LiveMeso, MushroomIcon, farmMinutes, fmtFarmTime, wonToMeso } from "./Meso";
 import { useNow } from "./useNow";
 import { MiniWindowButton, MiniWindowPortal, useMiniWindow } from "./MiniWindow";
 import { type EarningState, useEarningStore } from "./store";
@@ -46,6 +47,8 @@ interface View {
     phase: ViewPhase;
     total: number;
     totalExact: number;
+    /** 어제 시작한 초과근무를 자정 넘어 이어 보는 중 */
+    carry: boolean;
     /** 화면이 보여주는 근무일 (자정을 넘긴 초과근무면 어제) */
     workDate: string;
 }
@@ -56,14 +59,22 @@ type Settings = Pick<EarningState, "start" | "lunch" | "overtime">;
 function computeView(now: Date, s: Settings, hourly: number): View {
     const today = ymd(now);
     const yesterday = ymd(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
-    // 자정을 넘겨 계속 초과근무 중이면 어제 근무일을 이어서 보여준다
-    const carry = !!s.overtime && !s.overtime.endedAt && s.overtime.date === yesterday;
+    // 자정을 넘겨 "아직 진행 중인" 초과근무가 있을 때만 어제 근무일을 이어서 보여준다.
+    // 신청한 종료 시각이 지났으면 그냥 오늘로 넘어간다.
+    let carry = false;
+    if (s.overtime && s.overtime.date === yesterday) {
+        const yst = dayStatus(new Date(`${yesterday}T23:59:59`), s.start, s.lunch || undefined, hourly);
+        const running = overtimeStatus(now, s.overtime, yst.endMin, hourly).active;
+        // 종료 시각 없이 시작한 예전 방식은 다음 날 06시까지만 이어 본다
+        carry = running && (!!s.overtime.hours || now.getHours() < 6);
+    }
     const workDate = carry ? yesterday : today;
     const st = dayStatus(carry ? new Date(`${yesterday}T23:59:59`) : now, s.start, s.lunch || undefined, hourly);
     const ot = s.overtime && s.overtime.date === workDate ? overtimeStatus(now, s.overtime, st.endMin, hourly) : null;
     return {
         st,
         ot,
+        carry,
         phase: ot?.active ? "overtime" : st.phase,
         total: st.earned + (ot?.earned ?? 0),
         totalExact: st.earnedExact + (ot?.earnedExact ?? 0),
@@ -83,14 +94,90 @@ function useView(now: Date): View {
  * 매 프레임 갱신되는 연속 금액. 이 컴포넌트만 다시 그려지도록 분리했다.
  * 상태는 스토어에서 직접 읽어 렌더 사이클과 무관하게 최신값을 쓴다.
  */
-function LiveAmount({ win }: { win?: Window | null }) {
-    const value = useFrameValue(() => {
+function useLiveTotal(win?: Window | null) {
+    return useFrameValue(() => {
         const s = useEarningStore.getState();
         const v = computeView(new Date(), s, hourlyOf(s));
         // 오르는 중일 때만 소수까지 — 멈춰 있을 땐(출근 전·점심·퇴근) 바퀴가 숫자 사이에 걸리지 않게 정수로
         return v.phase === "working" || v.phase === "overtime" ? v.totalExact : Math.floor(v.totalExact);
     }, win);
-    return <LiveOdometer value={value} />;
+}
+
+function LiveAmount({ win }: { win?: Window | null }) {
+    return <LiveOdometer value={useLiveTotal(win)} />;
+}
+
+/** 번 돈을 메소로 환산해 같이 굴린다 (메소 환산을 켰을 때만) */
+function LiveMesoLine({ win, className = "" }: { win?: Window | null; className?: string }) {
+    const { mesoOn, mesoRate } = useEarningStore();
+    const won = useLiveTotal(win);
+    if (!mesoOn || mesoRate <= 0) return null;
+    return (
+        <div className={`flex items-center gap-1.5 font-bold text-[#f2a65a] ${className}`}>
+            <MushroomIcon size={18} />
+            {/* 메소는 가림 대상이 아니다 (현금 금액만 가린다) */}
+            <LiveMeso meso={wonToMeso(won, mesoRate)} />
+            <span className="text-[0.8em] font-semibold opacity-80">메소</span>
+        </div>
+    );
+}
+
+/**
+ * 재획(풀메획)과 비교.
+ * 재획은 하루 메소 한도가 있어서(풀메획 기준 6.6억) 시간으로만 따지면 과장된다 → 한도를 넘는 부분은 일 단위로 본다.
+ */
+function FarmCompare({
+    meso,
+    mesoPerHour,
+    farmEok30,
+    dailyCapEok,
+    workedSec,
+    mesoRate,
+}: {
+    meso: number;
+    mesoPerHour: number;
+    farmEok30: number;
+    dailyCapEok: number;
+    /** 오늘 실제로 일한 시간(점심 제외 + 초과근무) */
+    workedSec: number;
+    mesoRate: number;
+}) {
+    const farmPerHour = farmEok30 * 2 * 1e8;
+    const cap = dailyCapEok > 0 ? dailyCapEok * 1e8 : Infinity;
+    const times = mesoPerHour / farmPerHour;
+    const b = (text: React.ReactNode) => <b className="text-[#f2a65a]">{text}</b>;
+
+    // 같은 시간 동안 재획만 했다면 (하루 한도까지만)
+    const farmRaw = (workedSec / 3600) * farmPerHour;
+    const farmMeso = Math.min(farmRaw, cap);
+    const capped = farmRaw > cap;
+    const farmWon = (farmMeso / 1e8) * mesoRate;
+
+    return (
+        <div className="mt-1 space-y-0.5 text-xs tabular-nums text-[#f2a65a]/80">
+            <div>
+                ⚔️{" "}
+                {meso <= cap ? (
+                    <>재획 {b(fmtFarmTime(farmMinutes(meso, farmEok30)))}어치</>
+                ) : (
+                    <>재획 하루 한도로 {b(`${(meso / cap).toFixed(1)}일`)}치</>
+                )}
+                {times > 0 && (
+                    <>
+                        {" "}· 사냥보다 {b(`${times >= 10 ? Math.round(times) : times.toFixed(1)}배`)}{" "}
+                        {times >= 1 ? "빨라요" : "느려요"}
+                    </>
+                )}
+            </div>
+            {workedSec > 0 && (
+                <div>
+                    같은 시간({fmtFarmTime(workedSec / 60)}) 재획했다면 {b(`${(farmMeso / 1e8).toFixed(2)}억`)} 메소 ·{" "}
+                    {b(`${Math.floor(farmWon).toLocaleString("ko-KR")}원`)}
+                    {capped && <span className="ml-1 opacity-80">(하루 한도 {dailyCapEok}억 도달)</span>}
+                </div>
+            )}
+        </div>
+    );
 }
 
 function useHourly() {
@@ -300,7 +387,7 @@ function useDelta(value: number, tick: number) {
 
 /** 미니 창 내용. 타이머는 미니 창 쪽 것을 쓴다 */
 function MiniView({ win }: { win: Window }) {
-    const { hideMoney } = useEarningStore();
+    const { hideMoney, set } = useEarningStore();
     const now = useNow(win);
     const view = useView(now);
     const phase = PHASE[view.phase];
@@ -311,12 +398,27 @@ function MiniView({ win }: { win: Window }) {
                 <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${phase.className}`}>
                     {phase.label}
                 </span>
-                <span className="text-[11px] tabular-nums text-faint">{fmtClock(view.st.endMin)} 퇴근</span>
+                <span className="flex items-center gap-1.5">
+                    <span className="text-[11px] tabular-nums text-faint">{fmtClock(view.st.endMin)} 퇴근</span>
+                    {/* 메인 화면 가림과 같은 설정 */}
+                    <button
+                        onClick={() => set({ hideMoney: !hideMoney })}
+                        aria-pressed={hideMoney}
+                        aria-label={hideMoney ? "금액 보이기" : "금액 가리기"}
+                        title={hideMoney ? "금액 보이기" : "금액 가리기"}
+                        className={`rounded-md p-1 transition ${
+                            hideMoney ? "bg-accent/15 text-accent" : "text-faint hover:bg-line/10 hover:text-content"
+                        }`}
+                    >
+                        {hideMoney ? <EyeOff size={13} /> : <Eye size={13} />}
+                    </button>
+                </span>
             </div>
             <div className={`text-[34px] font-extrabold tracking-tight text-content ${hideMoney ? BLUR : ""}`}>
                 <LiveAmount win={win} />
                 <span className="ml-1 text-lg font-bold text-muted">원</span>
             </div>
+            <LiveMesoLine win={win} className="-mt-1 text-sm" />
             <DayBar st={view.st} compact />
             <div className="text-xs tabular-nums text-muted">{remainingLabel(view)}</div>
         </div>
@@ -372,6 +474,23 @@ export default function EarningPage() {
                 </div>
             </header>
 
+            {view.carry && ot && s.overtime && (
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-warn/30 bg-warn/10 px-4 py-2.5 text-sm text-warn">
+                    <span>
+                        어제({view.workDate.slice(5).replace("-", "/")}) 시작한 초과근무를 이어서 계산하고 있어요.
+                    </span>
+                    <button
+                        onClick={() => {
+                            const done = Math.floor(ot.sec / 3600);
+                            s.set({ overtime: done > 0 ? { ...s.overtime!, hours: done } : null });
+                        }}
+                        className="rounded-lg border border-warn/40 px-2.5 py-1 text-xs font-semibold transition hover:bg-warn/15"
+                    >
+                        오늘로 넘어가기 ({Math.floor(ot.sec / 3600)}시간 인정)
+                    </button>
+                </div>
+            )}
+
             {/* 메인 카운터 */}
             <Panel className="relative overflow-hidden p-5 sm:p-8">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -406,6 +525,17 @@ export default function EarningPage() {
                                 )}
                             </span>
                         </div>
+                        <LiveMesoLine className="mt-2 text-lg sm:text-xl" />
+                        {s.mesoOn && s.mesoRate > 0 && s.farmEok30 > 0 && (
+                            <FarmCompare
+                                meso={wonToMeso(view.total, s.mesoRate)}
+                                mesoPerHour={wonToMeso(hourly * rate, s.mesoRate)}
+                                farmEok30={s.farmEok30}
+                                dailyCapEok={s.farmDailyCapEok}
+                                workedSec={st.paidSec + (ot?.sec ?? 0)}
+                                mesoRate={s.mesoRate}
+                            />
+                        )}
                         <div className="mt-2 text-sm tabular-nums text-faint">
                             {ot && ot.sec > 0 ? (
                                 <>
@@ -531,8 +661,56 @@ export default function EarningPage() {
                         </p>
                     )}
                 </div>
+                {s.mesoOn && (
+                    <div>
+                        <div className="mb-1 flex items-center gap-1 text-[11px] font-medium text-muted">
+                            <MushroomIcon size={12} /> 메소 시세
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-muted">1억 메소 =</span>
+                            <MoneyInput value={s.mesoRate} onChange={(mesoRate) => s.set({ mesoRate })} suffix="원" />
+                        </div>
+                        <div className="mt-2 flex items-center gap-1.5">
+                            <span className="text-xs text-muted">재획 30분 =</span>
+                            <DraftNumberInput
+                                min={0}
+                                step={0.1}
+                                inputMode="decimal"
+                                value={s.farmEok30}
+                                onChange={(farmEok30) => s.set({ farmEok30: Math.max(0, farmEok30) })}
+                                className="w-20 text-right"
+                            />
+                            <span className="text-xs text-muted">억 메소 (풀메획)</span>
+                        </div>
+                        <div className="mt-2 flex items-center gap-1.5">
+                            <span className="text-xs text-muted">하루 한도 =</span>
+                            <DraftNumberInput
+                                min={0}
+                                step={0.1}
+                                inputMode="decimal"
+                                value={s.farmDailyCapEok}
+                                onChange={(farmDailyCapEok) => s.set({ farmDailyCapEok: Math.max(0, farmDailyCapEok) })}
+                                className="w-20 text-right"
+                            />
+                            <span className="text-xs text-muted">억 메소 (기본 2.2억, 풀메획 6.6억)</span>
+                        </div>
+                    </div>
+                )}
             </Panel>
             <p className="mt-2 text-[11px] text-faint">설정은 이 브라우저에 자동 저장돼요.</p>
+
+            {/* 이스터에그: 오른쪽 아래 떠 있는 버섯. 누르면 메소 환산 on/off (색만 바뀐다) */}
+            <button
+                onClick={() => s.set({ mesoOn: !s.mesoOn })}
+                aria-pressed={s.mesoOn}
+                aria-label={s.mesoOn ? "메소 환산 끄기" : "메소 환산 켜기"}
+                title={s.mesoOn ? "메소 환산 끄기" : "메소 환산 켜기"}
+                className={`fixed bottom-5 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-full border shadow-lg shadow-black/40 backdrop-blur transition hover:-translate-y-0.5 hover:scale-105 active:scale-95 ${
+                    s.mesoOn ? "border-[#f2862a]/50 bg-[#f2862a]/20" : "border-line/10 bg-surface/80"
+                }`}
+            >
+                <MushroomIcon size={26} muted={!s.mesoOn} />
+            </button>
 
             {mini.win && (
                 <MiniWindowPortal win={mini.win}>

@@ -41,7 +41,8 @@ const smoothstep = (t: number) => t * t * (3 - 2 * t);
 function wheelPos(value: number, k: number, smooth: boolean) {
     const unit = 10 ** k;
     const digit = Math.floor(value / unit) % 10;
-    if (!smooth) return digit;
+    // 정수(멈춰 있는 값)는 굴리지 않는다 — 넘김 직후 구간(x0~x1.5)에 걸려 숫자 사이에 멈추는 걸 막는다
+    if (!smooth || Number.isInteger(value)) return digit;
     if (k === 0) return value % 10;
     const below = value % unit;
     const span = Math.min(unit * ROLL_FRACTION, ROLL_MAX);
@@ -51,7 +52,16 @@ function wheelPos(value: number, k: number, smooth: boolean) {
     return prev + smoothstep(below / span);
 }
 
-export function LiveOdometer({ value, className = "" }: { value: number; className?: string }) {
+export function LiveOdometer({
+    value,
+    decimals = 0,
+    className = "",
+}: {
+    value: number;
+    /** 소수 자리 수 (예: 2 → "31.70") */
+    decimals?: number;
+    className?: string;
+}) {
     const [smooth, setSmooth] = useState(true);
     useEffect(() => {
         // OS 의 "동작 줄이기" 를 켜 두면 정수로 끊어서 보여준다
@@ -62,18 +72,22 @@ export function LiveOdometer({ value, className = "" }: { value: number; classNa
         return () => mq.removeEventListener("change", update);
     }, []);
 
-    const v = Math.max(0, value);
-    const digits = Math.max(1, Math.floor(v).toString().length);
+    // 소수 자리는 정수로 끌어올려 같은 바퀴 계산을 쓴다
+    const v = Math.max(0, value) * 10 ** decimals;
+    const digits = Math.max(decimals + 1, Math.floor(v).toString().length);
     const parts: React.ReactNode[] = [];
     for (let k = digits - 1; k >= 0; k--) {
         parts.push(<DigitWheel key={`d${k}`} pos={wheelPos(v, k, smooth)} />);
-        if (k > 0 && k % 3 === 0) parts.push(<span key={`c${k}`}>,</span>);
+        const intPos = k - decimals; // 정수부 기준 자리
+        if (decimals && k === decimals) parts.push(<span key="dot">.</span>);
+        else if (intPos > 0 && intPos % 3 === 0) parts.push(<span key={`c${k}`}>,</span>);
     }
+    const label = Math.max(0, value).toLocaleString("ko-KR", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    });
     return (
-        <span
-            className={`inline-flex tabular-nums leading-none ${className}`}
-            aria-label={`${Math.floor(v).toLocaleString("ko-KR")}`}
-        >
+        <span className={`inline-flex tabular-nums leading-none ${className}`} aria-label={label}>
             {parts}
         </span>
     );
