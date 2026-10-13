@@ -99,6 +99,12 @@ export const SITE_GROUPS: SiteGroup[] = [
                 label: "관리",
                 pages: [
                     {
+                        path: `${GAME_BASE}/nickname`,
+                        title: "닉네임 뽑기",
+                        description: "무작위 한글 두 글자를 뽑아 검색하고, 없는 닉네임을 후보로 모아요.",
+                        emoji: "🎲",
+                    },
+                    {
                         path: `${GAME_BASE}/me-calendar`,
                         title: "메-달력",
                         description: "목요일(메요일) 시작 달력에 번 메소·쓴 메소·일정을 기록해요.",
