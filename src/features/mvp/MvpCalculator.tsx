@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { Panel } from "@/features/symbol/components/ui";
-import { DeleteButton } from "@/features/overtime/DeleteButton";
+import { DeleteButton } from "@/components/DeleteButton";
 import {
     type CreditItem,
     type Inputs,

@@ -1,5 +1,5 @@
 import React from "react";
-import { LiveOdometer } from "./Odometer";
+import { Odometer } from "@/components/Odometer";
 
 /** 버섯 아이콘 (직접 그린 일반 버섯 — 게임 로고·리소스는 쓰지 않는다) */
 export function MushroomIcon({ size = 16, muted }: { size?: number; muted?: boolean }) {
@@ -28,7 +28,7 @@ export const wonToMeso = (won: number, rate: number) => (rate > 0 ? (won / rate)
 export function LiveMeso({ meso }: { meso: number }) {
     return (
         <span className="inline-flex items-baseline gap-0.5 tabular-nums">
-            <LiveOdometer value={Math.max(0, meso) / 1e8} decimals={2} />
+            <Odometer value={Math.max(0, meso) / 1e8} decimals={2} />
             <span>억</span>
         </span>
     );

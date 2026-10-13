@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { syncAcrossTabs } from "@/utils/syncAcrossTabs";
 import { nextDue } from "./logic";
 import type { Parsed } from "./parse";
 import { type Label, nextPreset } from "./labels";
@@ -128,3 +129,6 @@ export const useTodoStore = create<TodoState>()(
         { name: "doodle-todo" }
     )
 );
+
+// 다른 탭에서 저장하면 바로 다시 읽어 와 저장 충돌을 막는다
+syncAcrossTabs(useTodoStore);

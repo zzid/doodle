@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Plus } from "lucide-react";
-import { DeleteButton } from "@/features/overtime/DeleteButton";
+import { DeleteButton } from "@/components/DeleteButton";
 import { type Character, GRADES, GRADE_COLOR, INNER_CATEGORIES, useMapleTodo } from "./store";
 
 /** 게임 어빌리티 창처럼: 등급 색 헤더 + 옵션 3줄 */

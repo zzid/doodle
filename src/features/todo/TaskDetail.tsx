@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, X } from "lucide-react";
 import { fastTransition } from "@/config/motion";
-import { DeleteButton } from "@/features/overtime/DeleteButton";
+import { DeleteButton } from "@/components/DeleteButton";
 import { DraftNumberInput, TimeSelect } from "@/features/overtime/inputs";
 import { todayStr } from "./logic";
 import { LabelPicker } from "./LabelPicker";

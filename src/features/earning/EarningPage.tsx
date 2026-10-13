@@ -18,7 +18,9 @@ import {
     fmtWon,
     overtimeStatus,
 } from "./calc";
-import { LiveOdometer, useFrameValue } from "./Odometer";
+import { Odometer } from "@/components/Odometer";
+import { FloatingHideButton } from "@/components/FloatingHideButton";
+import { useFrameValue } from "@/hooks/useFrameValue";
 import { LiveMeso, MushroomIcon, farmMinutes, fmtFarmTime, wonToMeso } from "./Meso";
 import { useNow } from "./useNow";
 import { MiniWindowButton, MiniWindowPortal, useMiniWindow } from "./MiniWindow";
@@ -104,7 +106,7 @@ function useLiveTotal(win?: Window | null) {
 }
 
 function LiveAmount({ win }: { win?: Window | null }) {
-    return <LiveOdometer value={useLiveTotal(win)} />;
+    return <Odometer value={useLiveTotal(win)} />;
 }
 
 /** 번 돈을 메소로 환산해 같이 굴린다 (메소 환산을 켰을 때만) */
@@ -698,6 +700,8 @@ export default function EarningPage() {
                 )}
             </Panel>
             <p className="mt-2 text-[11px] text-faint">설정은 이 브라우저에 자동 저장돼요.</p>
+
+            <FloatingHideButton hidden={s.hideMoney} onToggle={() => s.set({ hideMoney: !s.hideMoney })} />
 
             {/* 이스터에그: 오른쪽 아래 떠 있는 버섯. 누르면 메소 환산 on/off (색만 바뀐다) */}
             <button

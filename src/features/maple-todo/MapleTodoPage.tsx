@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { ChevronDown, Plus } from "lucide-react";
 import { Panel } from "@/features/symbol/components/ui";
-import { DeleteButton } from "@/features/overtime/DeleteButton";
+import { DeleteButton } from "@/components/DeleteButton";
 import { GearWindow } from "./GearWindow";
 import { AbilityCard, InnerList } from "./InnerPanel";
 import { type Character, charStats, useMapleTodo } from "./store";

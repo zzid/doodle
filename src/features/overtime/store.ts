@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { syncAcrossTabs } from "@/utils/syncAcrossTabs";
 import { type Entry, MAX_HOURS, toMin } from "./calc";
 import type { BackupData, BackupSettings } from "./backup";
 
@@ -133,3 +134,6 @@ export const useOvertimeStore = create<OvertimeState>()(
         }
     )
 );
+
+// 다른 탭에서 저장하면 바로 다시 읽어 와 저장 충돌을 막는다
+syncAcrossTabs(useOvertimeStore);

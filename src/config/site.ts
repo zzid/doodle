@@ -99,6 +99,12 @@ export const SITE_GROUPS: SiteGroup[] = [
                 label: "관리",
                 pages: [
                     {
+                        path: `${GAME_BASE}/me-calendar`,
+                        title: "메-달력",
+                        description: "목요일(메요일) 시작 달력에 번 메소·쓴 메소·일정을 기록해요.",
+                        emoji: "🗓️",
+                    },
+                    {
                         path: `${GAME_BASE}/maple-todo`,
                         title: "메TODO",
                         description: "캐릭터별 장비·내실 할 일을 체크리스트로 관리해요.",

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Dices, Pencil, Plus, X } from "lucide-react";
-import { Modal } from "@/features/overtime/Modal";
-import { DeleteButton } from "@/features/overtime/DeleteButton";
+import { Modal } from "@/components/Modal";
+import { DeleteButton } from "@/components/DeleteButton";
 import { LabelPill } from "./LabelPill";
 import { type Label, LABEL_PRESETS, cleanLabel, isHex, nextPreset, randomColor } from "./labels";
 import { useTodoStore } from "./store";

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { syncAcrossTabs } from "@/utils/syncAcrossTabs";
 
 /* ---------- 장비 ---------- */
 
@@ -215,3 +216,6 @@ export const useMapleTodo = create<State>()(
         }
     )
 );
+
+// 다른 탭에서 저장하면 바로 다시 읽어 와 저장 충돌을 막는다
+syncAcrossTabs(useMapleTodo);

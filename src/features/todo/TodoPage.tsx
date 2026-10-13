@@ -13,7 +13,7 @@ import {
     SquareCheckBig,
 } from "lucide-react";
 import { Panel } from "@/features/symbol/components/ui";
-import { DeleteButton } from "@/features/overtime/DeleteButton";
+import { DeleteButton } from "@/components/DeleteButton";
 import { BoardView } from "./BoardView";
 import { QuickAdd } from "./QuickAdd";
 import { TaskDetail } from "./TaskDetail";

@@ -20,8 +20,9 @@ import { useOvertimeStore } from "./store";
 import { DayEditor } from "./DayEditor";
 import { MonthSummary } from "./MonthSummary";
 import { NetPayCard } from "./NetPayCard";
-import { BackupMenu } from "./BackupMenu";
-import { DeleteButton } from "./DeleteButton";
+import { OvertimeBackupMenu } from "./BackupMenu";
+import { FloatingHideButton } from "@/components/FloatingHideButton";
+import { DeleteButton } from "@/components/DeleteButton";
 import { MoneyInput } from "./inputs";
 
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
@@ -82,7 +83,7 @@ export default function OvertimeTracker() {
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                    <BackupMenu />
+                    <OvertimeBackupMenu />
                     <DeleteButton
                         label={`${cursor.month() + 1}월 기록 삭제`}
                         title={`${cursor.format("YYYY년 M월")} 기록을 모두 삭제할까요?`}
@@ -333,6 +334,8 @@ export default function OvertimeTracker() {
             <div className="mt-4">
                 <NetPayCard month={month} overtimePay={summary.pay.amount} hourlyWage={hourlyWage} />
             </div>
+
+            <FloatingHideButton hidden={hideWage} onToggle={() => setSettings({ hideWage: !hideWage })} />
         </div>
     );
 }

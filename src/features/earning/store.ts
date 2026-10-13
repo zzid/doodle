@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { syncAcrossTabs } from "@/utils/syncAcrossTabs";
 import type { OvertimeSession } from "./calc";
 
 export interface EarningState {
@@ -65,3 +66,6 @@ export const useEarningStore = create<EarningState>()(
         { name: "doodle-earning" }
     )
 );
+
+// 다른 탭에서 저장하면 바로 다시 읽어 와 저장 충돌을 막는다
+syncAcrossTabs(useEarningStore);

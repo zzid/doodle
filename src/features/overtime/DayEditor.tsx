@@ -18,7 +18,7 @@ import {
 } from "./calc";
 import { HOLIDAYS } from "./holidays";
 import { useOvertimeStore } from "./store";
-import { DeleteButton } from "./DeleteButton";
+import { DeleteButton } from "@/components/DeleteButton";
 import { DraftNumberInput, TimeSelect } from "./inputs";
 
 const DOW = ["일", "월", "화", "수", "목", "금", "토"];
