@@ -21,6 +21,7 @@ interface State {
     /** 이미 있는 닉네임 → 다음 뽑기부터 제외 */
     taken: string[];
     toggleExcluded: (group: Group, index: number) => void;
+    setExcluded: (group: Group, indices: number[]) => void;
     resetExcluded: () => void;
     setQuantity: (n: number) => void;
     setResults: (words: string[], rolledWith: Excluded) => void;
@@ -50,6 +51,7 @@ export const useNickname = create<State>()(
                         },
                     };
                 }),
+            setExcluded: (group, indices) => set((s) => ({ excluded: { ...s.excluded, [group]: indices } })),
             resetExcluded: () => set({ excluded: DEFAULT_EXCLUDED }),
             setQuantity: (quantity) => set({ quantity }),
             setResults: (results, rolledWith) => set({ results, rolledWith }),
